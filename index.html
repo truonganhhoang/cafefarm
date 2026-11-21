@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cà phê Tây Bắc 2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+:root{
+  /* Layout: cột ứng dụng nông dân (≤440px) bên trái + bảng điều hành cấp tỉnh bên phải trên màn hình rộng */
+  --bg:#EEF2EC; --surface:#FFFFFF; --ink:#18261E; --muted:#5B6B61; --line:#D7E0D6;
+  --leaf:#1E5B39; --leaf-soft:#E2EFE6; --cherry:#A3271C;
+  --ok:#2F7D4E; --warn:#B86E00; --high:#C2410C; --crit:#B3261E; --info:#2F6FA8;
+  --font:"Be Vietnam Pro", "Segoe UI", Roboto, Arial, sans-serif;
+  --r:14px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1611; --surface:#16211A; --ink:#E4ECE6; --muted:#98A99E; --line:#283A2F;
+    --leaf:#62C08A; --leaf-soft:#1C3325; --cherry:#E2766A;
+    --ok:#5CC183; --warn:#E5A43A; --high:#F0884F; --crit:#F0675B; --info:#6AA8E0;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1611; --surface:#16211A; --ink:#E4ECE6; --muted:#98A99E; --line:#283A2F;
+  --leaf:#62C08A; --leaf-soft:#1C3325; --cherry:#E2766A;
+  --ok:#5CC183; --warn:#E5A43A; --high:#F0884F; --crit:#F0675B; --info:#6AA8E0;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.25}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--leaf);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.shell{height:100%;display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);grid-template-rows:minmax(0,1fr);max-width:1480px;margin:0 auto}
+.app{min-height:0;display:flex;flex-direction:column;background:var(--bg);border-right:1px solid var(--line);min-width:0}
+.top{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--leaf);color:#fff}
+:root[data-theme="dark"] .top{color:#0E1611}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .top{color:#0E1611}}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;letter-spacing:-.01em}
+.farmchip{margin-left:auto;font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.16);white-space:nowrap;max-width:55%;overflow:hidden;text-overflow:ellipsis}
+.infobtn{display:none;border:0;background:rgba(255,255,255,.16);color:inherit;border-radius:999px;padding:5px 10px;font-weight:700;cursor:pointer;font-size:12.5px}
+.views{flex:1;overflow-y:auto;padding:14px 16px 24px}
+.view{display:none;flex-direction:column;gap:14px}
+.view.on{display:flex}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);background:var(--surface)}
+.tabs button{border:0;background:none;padding:8px 2px 9px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer}
+.tabs button svg{width:22px;height:22px}
+.tabs button[aria-selected="true"]{color:var(--leaf)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;min-width:0}
+.card h2{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card h2 .sub{margin-left:auto;font-size:12px;font-weight:500;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.tiny{font-size:11.5px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.stack{display:flex;flex-direction:column;gap:10px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn.primary{background:var(--leaf);border-color:var(--leaf);color:var(--surface)}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--leaf-soft);border-color:var(--leaf);color:var(--leaf)}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--leaf-soft);color:var(--leaf)}
+.tag.ex{background:transparent;border:1px dashed var(--muted);color:var(--muted)}
+.tag.warn{background:transparent;border:1px solid var(--warn);color:var(--warn)}
+.tag.crit{background:transparent;border:1px solid var(--crit);color:var(--crit)}
+.hello h1{font-size:20px;font-weight:800}
+.banner{border:1px solid var(--info);color:var(--info);border-radius:12px;padding:8px 12px;font-size:13px;background:transparent}
+.alert{position:relative;padding:14px 14px 14px 18px;overflow:hidden}
+.alert::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--lvl,var(--ok))}
+.alert .lvl{font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--lvl)}
+.alert h3{font-size:17px;font-weight:800;margin:2px 0 6px}
+.alert ol{margin:8px 0 0;padding-left:20px}
+.alert li{margin:3px 0}
+.l0{--lvl:var(--ok)} .l1{--lvl:var(--warn)} .l2{--lvl:var(--high)} .l3{--lvl:var(--crit)} .li{--lvl:var(--info)}
+.risks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.risk{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--surface);cursor:pointer;text-align:left}
+.risk .name{font-size:12px;color:var(--muted);font-weight:600}
+.risk .val{font-weight:800;font-size:15px;color:var(--lvl)}
+.meter{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;margin-top:6px}
+.meter i{height:5px;border-radius:3px;background:var(--line)}
+.meter i.f{background:var(--lvl)}
+.fc{display:grid;grid-template-columns:repeat(7,minmax(44px,1fr));gap:4px;overflow-x:auto}
+.day{text-align:center;padding:6px 2px;border-radius:10px;font-size:12px}
+.day.today{background:var(--leaf-soft)}
+.day .dn{font-weight:700}
+.day .tmin{font-weight:800;font-size:14px}
+.day .dot{width:9px;height:9px;border-radius:50%;margin:4px auto 0;background:var(--lvl)}
+.bar{height:34px;display:flex;align-items:flex-end;justify-content:center;margin:4px 0}
+.bar span{width:10px;border-radius:3px 3px 0 0;background:var(--info);min-height:2px}
+.check{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line)}
+.check:last-child{border-bottom:0}
+.check input{margin-top:4px;width:18px;height:18px;accent-color:var(--leaf)}
+.check.done span{text-decoration:line-through;color:var(--muted)}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.inp{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 10px;width:100%;min-width:0}
+textarea.inp{resize:vertical;min-height:70px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.drop{border:2px dashed var(--line);border-radius:var(--r);padding:18px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--surface)}
+.drop img{max-width:100%;max-height:220px;border-radius:10px}
+.result h3{font-size:18px;font-weight:800}
+.result ul{margin:4px 0 0;padding-left:20px}
+.conf{font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+.spin{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--leaf);border-radius:50%;animation:sp 1s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.spin{animation:none}}
+.sym{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;padding:4px 0}
+.sym input{margin-top:3px;accent-color:var(--leaf)}
+.msgs{display:flex;flex-direction:column;gap:8px}
+.msg{max-width:88%;padding:9px 12px;border-radius:14px;white-space:pre-wrap;font-size:14px}
+.msg.u{align-self:flex-end;background:var(--leaf);color:var(--surface);border-bottom-right-radius:4px}
+.msg.a{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:4px}
+.composer{display:flex;gap:6px}
+.composer .inp{flex:1}
+.mic[aria-pressed="true"]{background:var(--cherry);border-color:var(--cherry);color:#fff}
+.q{border-top:1px solid var(--line);padding-top:10px}
+.q:first-child{border-top:0;padding-top:0}
+.q .meta{font-size:12px;color:var(--muted)}
+.ans{margin:6px 0 0 10px;padding-left:10px;border-left:3px solid var(--leaf-soft);font-size:14px}
+.ans b{color:var(--leaf)}
+.q img{width:72px;height:72px;object-fit:cover;border-radius:8px;float:right;margin-left:8px}
+canvas#plot{width:100%;height:150px;background:var(--bg);border-radius:10px;border:1px solid var(--line)}
+.ck{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;padding:4px 0}
+.ck .m{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;background:var(--warn)}
+.ck .m.y{background:var(--ok)}
+.prog{height:8px;border-radius:5px;background:var(--line);overflow:hidden}
+.prog i{display:block;height:100%;background:var(--leaf)}
+.qr{display:flex;gap:12px;align-items:center}
+.qr img{width:120px;height:120px;background:#fff;border-radius:8px;padding:4px;flex:none}
+.diary{display:flex;flex-direction:column}
+.dr{display:grid;grid-template-columns:78px 1fr;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.dr:last-child{border-bottom:0}
+.lib{display:flex;flex-direction:column;gap:10px}
+.lib details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.lib summary{cursor:pointer;font-weight:700;list-style:none;display:flex;gap:8px;align-items:center}
+.lib summary::-webkit-details-marker{display:none}
+.lib summary .sci{font-weight:400;font-style:italic;color:var(--muted);font-size:12.5px}
+.lib h4{margin:10px 0 2px;font-size:13px;color:var(--leaf)}
+.lib ul{margin:0;padding-left:18px;font-size:14px}
+/* ---- Bảng điều hành tỉnh ---- */
+.side{min-height:0;overflow-y:auto;padding:22px 28px 40px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.side > *{flex-shrink:0}
+.sidehead{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.sidehead h1{font-size:24px;font-weight:800;letter-spacing:-.015em}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:none;padding:7px 12px;font-weight:600;font-size:13px;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--leaf);color:var(--surface)}
+.pane{display:none;flex-direction:column;gap:16px}
+.pane.on{display:flex}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+.tile .v{font-size:20px;font-weight:800;letter-spacing:-.01em}
+.tile .k{font-size:12.5px;color:var(--muted);font-weight:600}
+.tile .s{font-size:11px;color:var(--muted);margin-top:4px}
+.tile.l2 .v,.tile.l3 .v,.tile.l1 .v{color:var(--lvl)}
+.grid-main{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:14px}
+@media (max-width:1240px){.grid-main{grid-template-columns:1fr}}
+canvas#map{width:100%;aspect-ratio:5/4;display:block;border-radius:10px;background:var(--bg);border:1px solid var(--line);cursor:crosshair}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+thead th{font-size:12px;color:var(--muted);font-weight:700;background:var(--bg);position:sticky;top:0}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:var(--leaf-soft)}
+tbody tr.sel td{background:var(--leaf-soft)}
+.pill{display:inline-block;min-width:54px;text-align:center;font-weight:700;font-size:12px;padding:1px 8px;border-radius:999px;color:var(--lvl);border:1px solid var(--lvl)}
+.cmp td,.cmp th{text-align:center;white-space:normal}
+.cmp td:first-child,.cmp th:first-child{text-align:left}
+td.y{color:var(--ok);font-weight:800} td.p{color:var(--warn);font-weight:700} td.n{color:var(--muted)}
+th.me,td.me{background:var(--leaf-soft)}
+.gap-row{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.gap-row:last-child{border-bottom:0}
+.detail{font-size:13.5px}
+.detail dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:8px 0 0}
+.detail dt{color:var(--muted)}
+.detail dd{margin:0}
+.src{font-size:11.5px;color:var(--muted)}
+.src li{margin:2px 0}
+.prose p,.prose ul{max-width:70ch;margin:0}
+.prose li{margin:4px 0}
+.closeabout{display:none}
+.toast{position:fixed;left:50%;bottom:76px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90%}
+.toast.on{opacity:1}
+@media (max-width:980px){
+  .shell{grid-template-columns:1fr}
+  .app{height:100%;border-right:0;max-width:560px;margin:0 auto;width:100%}
+  .side{display:none;position:fixed;inset:0;background:var(--bg);z-index:10;padding:16px 16px 40px}
+  body.show-side .side{display:flex}
+  .infobtn{display:block}
+  .closeabout{display:inline-flex;align-self:flex-start}
+}
+@media (max-width:400px){ .grid2{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="shell">
+<main class="app">
+  <header class="top">
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="7" ry="9.5" fill="currentColor" opacity=".95"/><path d="M12 3c-2.5 3-2.5 15 0 18" stroke="var(--leaf)" stroke-width="1.6" fill="none"/></svg>
+      Cà phê Tây Bắc
+    </div>
+    <span class="farmchip" id="farmchip">—</span>
+    <button class="infobtn" id="infobtn">Tỉnh</button>
+  </header>
+
+  <div class="views" id="views">
+    <!-- HÔM NAY -->
+    <section class="view on" id="v-today" aria-label="Hôm nay">
+      <div class="card stack">
+        <label class="f" for="persona">Đang xem với tư cách hộ (dữ liệu demo)<select class="inp" id="persona"></select></label>
+        <div class="chips" id="scn">
+          <button class="chip" data-s="real" id="chip-real" aria-pressed="true">Dự báo thật</button>
+          <button class="chip" data-s="jan25" aria-pressed="false">Phát lại đợt rét 1/2025</button>
+        </div>
+        <div class="tiny muted" id="scn-note"></div>
+      </div>
+      <div class="hello">
+        <div class="muted small" id="today-date">—</div>
+        <h1 id="hello-name">Chào bà con</h1>
+      </div>
+      <div class="banner" id="replay-banner" style="display:none"></div>
+      <div class="card alert li" id="bcast" style="display:none"></div>
+      <div class="card alert" id="alert"></div>
+      <div class="risks" id="risks"></div>
+      <div class="card">
+        <h2>Thời tiết tại vườn 7 ngày <span class="sub" id="fc-sub">—</span></h2>
+        <div class="fc num" id="fc" style="margin-top:8px"></div>
+        <div class="tiny muted" style="margin-top:6px" id="fc-note">Nhiệt độ thấp nhất đã quy đổi theo độ cao và địa hình vườn. Chấm màu là nguy cơ sương muối đêm đó.</div>
+      </div>
+      <div class="card" id="phi-card" style="display:none"></div>
+      <div class="card">
+        <h2>Việc tháng này <span class="sub" id="month-name">—</span></h2>
+        <div id="tasks" style="margin-top:6px"></div>
+      </div>
+      <div class="card">
+        <h2>Giá quả tươi bà con báo <span class="sub">7 ngày gần nhất</span></h2>
+        <div id="price-sum" class="stack" style="margin-top:8px"></div>
+        <form id="price-form" class="stack" style="margin-top:10px">
+          <div class="grid2">
+            <label class="f" for="p-loai">Loại<select class="inp" id="p-loai"><option>Quả tươi</option><option>Thóc khô</option><option>Nhân xô</option></select></label>
+            <label class="f" for="p-gia">Giá (đồng/kg)<input class="inp num" id="p-gia" type="number" inputmode="numeric" min="1000" max="500000" step="100" placeholder="vd 20500"></label>
+          </div>
+          <button class="btn" type="submit" id="p-btn">Báo giá ở xã tôi</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- BÁC SĨ CÂY -->
+    <section class="view" id="v-doctor" aria-label="Bác sĩ cây">
+      <div class="card stack">
+        <h2>Chụp ảnh lá, quả, cành bị bệnh</h2>
+        <label class="drop" for="photo" id="drop">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+          <span style="font-weight:700">Chạm để chụp hoặc chọn ảnh</span>
+          <span class="tiny muted">Chụp gần, đủ sáng, thấy rõ vết bệnh. Mặt dưới lá nếu nghi gỉ sắt.</span>
+        </label>
+        <input type="file" id="photo" accept="image/*" capture="environment" hidden>
+        <label class="f" for="photo-note">Mô tả thêm (không bắt buộc)<input class="inp" id="photo-note" placeholder="vd rụng lá nhiều sau mưa, cả lô phía dưới dốc"></label>
+        <button class="btn primary" id="diag-btn" disabled>Chẩn đoán bằng AI</button>
+        <div class="small muted" id="diag-status"></div>
+      </div>
+      <div class="card result" id="diag-result" style="display:none"></div>
+      <div class="card stack">
+        <h2>Không có mạng? Chẩn đoán theo dấu hiệu</h2>
+        <div class="small muted">Đánh dấu những gì bà con thấy trên cây.</div>
+        <div id="syms"></div>
+        <div id="sym-out"></div>
+      </div>
+    </section>
+
+    <!-- HỎI ĐÁP -->
+    <section class="view" id="v-ask" aria-label="Hỏi đáp">
+      <div class="card stack">
+        <h2>Trợ lý khuyến nông <span class="sub">trả lời ngay</span></h2>
+        <div class="msgs" id="msgs"></div>
+        <div class="chips" id="sugg">
+          <button class="chip">Sau thu hoạch nên tỉa cành thế nào?</button>
+          <button class="chip">Lá vàng cả vườn sau đợt rét phải làm gì?</button>
+          <button class="chip">Bán cho châu Âu cần chuẩn bị gì?</button>
+        </div>
+        <form class="composer" id="chat-form">
+          <button type="button" class="btn mic" id="mic" aria-pressed="false" aria-label="Nói để hỏi" style="display:none">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+          </button>
+          <input class="inp" id="chat-in" placeholder="Hỏi về cây cà phê của bà con" autocomplete="off">
+          <button class="btn primary" id="chat-send">Gửi</button>
+        </form>
+        <div class="tiny muted" id="chat-note"></div>
+      </div>
+      <div class="card stack">
+        <h2>Hỏi cán bộ khuyến nông <span class="sub" id="q-count"></span></h2>
+        <form id="q-form" class="stack">
+          <textarea class="inp" id="q-text" placeholder="Mô tả vấn đề: giống, tuổi cây, dấu hiệu, từ khi nào"></textarea>
+          <button class="btn" id="q-btn" type="submit">Gửi câu hỏi</button>
+        </form>
+        <div class="tiny muted" id="q-note"></div>
+        <label class="sym tiny" id="expert-wrap" for="expert-tg" style="display:none"><input type="checkbox" id="expert-tg"> Trả lời với tư cách cán bộ khuyến nông (chế độ trình diễn)</label>
+        <div id="q-list" class="stack"></div>
+      </div>
+    </section>
+
+    <!-- VƯỜN -->
+    <section class="view" id="v-farm" aria-label="Vườn của tôi">
+      <div class="card stack">
+        <h2>Sẵn sàng bán vào EU (EUDR) <span class="sub num" id="eudr-days"></span></h2>
+        <div class="prog"><i id="eudr-bar" style="width:0"></i></div>
+        <div id="eudr-list"></div>
+        <div class="qr" id="qr-box"></div>
+      </div>
+      <div class="card stack">
+        <h2>Hồ sơ vườn <span class="sub" id="save-state"></span></h2>
+        <div class="tiny muted" id="farm-lock"></div>
+        <div class="grid2">
+          <label class="f" for="f-owner">Chủ hộ<input class="inp" id="f-owner"></label>
+          <label class="f" for="f-msvt">Mã số vùng trồng<input class="inp" id="f-msvt" placeholder="vd SL-CF-MC-0123"></label>
+          <label class="f" for="f-ban">Bản<input class="inp" id="f-ban"></label>
+          <label class="f" for="f-cid">Xã, phường<select class="inp" id="f-cid"></select></label>
+          <label class="f" for="f-elev">Độ cao vườn (m)<input class="inp num" id="f-elev" type="number" min="200" max="2000" step="10"></label>
+          <label class="f" for="f-terrain">Địa hình<select class="inp" id="f-terrain"><option value="doc">Sườn dốc</option><option value="trung">Thung lũng, chỗ trũng</option><option value="dinh">Đỉnh đồi, lộng gió</option></select></label>
+          <label class="f" for="f-variety">Giống<select class="inp" id="f-variety"><option>Catimor</option><option>Typica</option><option>Bourbon</option><option>Stamaya</option><option>Khác</option></select></label>
+          <label class="f" for="f-area">Diện tích (ha)<input class="inp num" id="f-area" type="number" min="0" step="0.1"></label>
+        </div>
+        <label class="f" for="f-coords">Toạ độ các góc vườn (mỗi dòng: vĩ độ, kinh độ)<textarea class="inp num" id="f-coords" rows="4"></textarea></label>
+        <canvas id="plot" width="600" height="300" aria-label="Sơ đồ ranh giới vườn"></canvas>
+        <div class="small" id="area-out"></div>
+        <label class="sym" for="f-pre2020"><input type="checkbox" id="f-pre2020"> Đất này đã dùng làm nông nghiệp từ trước 31/12/2020 (không phải rừng)</label>
+        <label class="sym" for="f-forest"><input type="checkbox" id="f-forest"> Không chồng lấn bản đồ rừng, không phá rừng để trồng</label>
+      </div>
+      <div class="card stack">
+        <h2>Nhật ký canh tác <span class="sub num" id="diary-count"></span></h2>
+        <form id="d-form" class="stack">
+          <div class="grid2">
+            <label class="f" for="d-date">Ngày<input class="inp num" id="d-date" type="date"></label>
+            <label class="f" for="d-type">Công việc<select class="inp" id="d-type"><option>Thu hái</option><option>Sơ chế</option><option>Bón phân</option><option>Phun thuốc BVTV</option><option>Tỉa cành</option><option>Làm cỏ</option><option>Khác</option></select></label>
+          </div>
+          <label class="f" for="d-note">Nội dung<input class="inp" id="d-note" placeholder="vd hái quả chín lô 1"></label>
+          <div class="grid2">
+            <label class="f" for="d-qty">Lượng / vật tư<input class="inp" id="d-qty" placeholder="vd 420 kg quả tươi"></label>
+            <label class="f" for="d-phi" id="d-phi-wrap" style="visibility:hidden">Thời gian cách ly (ngày)<input class="inp num" id="d-phi" type="number" min="0" max="60"></label>
+          </div>
+          <button class="btn" type="submit">Ghi vào nhật ký</button>
+        </form>
+        <div class="diary" id="diary"></div>
+      </div>
+    </section>
+
+    <!-- KIẾN THỨC -->
+    <section class="view" id="v-lib" aria-label="Kiến thức">
+      <input class="inp" id="lib-q" placeholder="Tìm: gỉ sắt, mọt, sương muối…" aria-label="Tìm trong kho kiến thức">
+      <div class="lib" id="lib"></div>
+      <div class="card small muted">Nội dung kỹ thuật trong bản demo là bản tóm tắt chung. Khi triển khai, từng mục cần chuyên gia khuyến nông và bảo vệ thực vật của tỉnh thẩm định. Thuốc BVTV luôn dùng theo nhãn và Danh mục được phép sử dụng tại Việt Nam.</div>
+    </section>
+  </div>
+
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-v="today" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5"/></svg>Hôm nay</button>
+    <button role="tab" data-v="doctor" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 19c0-8 6-14 15-14 0 9-6 15-14 15"/><path d="M5 19 13 11"/></svg>Bác sĩ cây</button>
+    <button role="tab" data-v="ask" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>Hỏi đáp</button>
+    <button role="tab" data-v="farm" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 20 9 6l4 8 3-4 5 10z"/></svg>Vườn tôi</button>
+    <button role="tab" data-v="lib" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h6a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H4zM20 4h-6a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h6z"/></svg>Kiến thức</button>
+  </nav>
+</main>
+
+<aside class="side" id="side">
+  <button class="btn closeabout" id="closeside">Quay lại ứng dụng nông dân</button>
+  <div class="sidehead">
+    <div>
+      <span class="tag ex">Dữ liệu demo · thời tiết thật</span>
+      <h1 style="margin-top:6px">Bảng điều hành cà phê Sơn La</h1>
+    </div>
+    <div class="seg" id="seg" style="margin-left:auto">
+      <button data-p="ops" aria-pressed="true">Điều hành</button>
+      <button data-p="design" aria-pressed="false">Thiết kế &amp; so sánh</button>
+    </div>
+  </div>
+
+  <div class="pane on" id="p-ops">
+    <div class="tiles" id="facts"></div>
+    <div class="tiles" id="kpis"></div>
+    <div class="grid-main">
+      <div class="card stack">
+        <h2>Bản đồ hộ trồng cà phê <span class="sub" id="map-sub"></span></h2>
+        <div class="chips" id="layers">
+          <button class="chip" data-l="frost" aria-pressed="true">Nguy cơ sương muối 7 ngày</button>
+          <button class="chip" data-l="eudr" aria-pressed="false">Hồ sơ EUDR</button>
+          <button class="chip" data-l="cert" aria-pressed="false">Chứng nhận</button>
+        </div>
+        <canvas id="map" width="960" height="600" aria-label="Bản đồ các hộ trồng cà phê theo xã"></canvas>
+        <div class="legend" id="legend"></div>
+        <div class="detail" id="farm-detail"><span class="muted small">Chạm vào một chấm trên bản đồ hoặc một dòng trong bảng để xem chi tiết.</span></div>
+      </div>
+      <div class="stack">
+        <div class="card stack">
+          <h2>Gửi cảnh báo cho bà con</h2>
+          <div id="bc-draft" class="small"></div>
+          <div class="row"><button class="btn primary" id="bc-send">Gửi thông báo</button><span class="tiny muted" id="bc-note"></span></div>
+          <div id="bc-list" class="stack"></div>
+        </div>
+        <div class="card stack">
+          <h2>Hồ sơ EUDR còn thiếu <span class="sub num" id="gap-sub"></span></h2>
+          <div id="gaps"></div>
+          <div class="row">
+            <button class="btn" id="copy-gaps">Sao chép danh sách hộ thiếu hồ sơ</button>
+            <button class="btn" id="copy-geo">Sao chép GeoJSON hộ đã đủ</button>
+          </div>
+        </div>
+        <div class="card stack">
+          <h2>Câu hỏi chờ cán bộ trả lời <span class="sub num" id="qq-sub"></span></h2>
+          <div id="qq"></div>
+        </div>
+        <div class="card stack">
+          <h2>Giá quả tươi bà con báo <span class="sub">7 ngày</span></h2>
+          <div id="pp"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card stack">
+      <h2>Theo xã, phường <span class="sub">tên theo Nghị quyết 1681/NQ-UBTVQH15</span></h2>
+      <div class="tbl"><table class="num" id="ctable"></table></div>
+      <div class="tiny muted">Tmin lưới: nhiệt độ thấp nhất của ô lưới mô hình thời tiết trong 7 ngày. Hộ nguy cơ cao: ước nhiệt độ mặt lá tại vườn ≤ 0 °C (rất cao: ≤ −2 °C) sau khi hiệu chỉnh độ cao, địa hình và đêm trời quang, lặng gió.</div>
+    </div>
+    <ul class="src" id="sources">
+      <li>Số liệu toàn tỉnh: Sở Nông nghiệp và Môi trường Sơn La (Báo Nông nghiệp và Môi trường, 28/7/2026); Báo Đại biểu Nhân dân (30/10/2026).</li>
+      <li id="src-wx">Thời tiết: Open-Meteo, dự báo lấy ngày 21/11/2026 và tái phân tích ERA5 cho 6–19/1/2025, theo toạ độ ước lượng tâm từng xã.</li>
+      <li>Đợt rét 12/1/2025 làm hại gần 100 ha cà phê ở Chiềng Đen, Hua La, Chiềng Cọ, thiệt hại ước 4 tỷ đồng (VOH, Dân trí, 1/2025).</li>
+      <li>Giá quả tươi đầu vụ 2026: khoảng 16.000–25.000 đồng/kg tuỳ chất lượng (VINAGRI News, Báo Sơn La, 10/2026). Giá trong bản demo là báo giá mẫu trong khoảng này.</li>
+      <li>Hộ, bản, hợp tác xã, mã số vùng trồng trong bản demo là dữ liệu giả lập để trình diễn.</li>
+    </ul>
+  </div>
+
+  <div class="pane prose" id="p-design">
+    <p>App hiện tại của Weatherplus có ba mảng: kho kỹ thuật, hỏi chuyên gia, thời tiết nông vụ. Bản này giữ cả ba, thêm những gì các app mạnh nhất cùng loại đã chứng minh, một mảng app trong nước chưa làm là hồ sơ vườn theo quy định chống phá rừng của EU, và một bảng điều hành cho cơ quan quản lý cấp tỉnh.</p>
+    <div class="tbl">
+      <table class="cmp">
+        <thead><tr><th>Tính năng</th><th>Cafe Tây Bắc</th><th>mobiAgri, 2Nông</th><th>Plantix, Agrio</th><th>Cropster, TerraTrac</th><th class="me">Bản này</th></tr></thead>
+        <tbody>
+          <tr><td>Kho kỹ thuật, sâu bệnh</td><td class="y">có</td><td class="y">có</td><td class="y">có</td><td class="n">–</td><td class="y me">có, dùng offline</td></tr>
+          <tr><td>Chẩn đoán bệnh qua ảnh</td><td class="n">–</td><td class="p">một số cây</td><td class="y">có</td><td class="n">–</td><td class="y me">có, riêng cà phê chè</td></tr>
+          <tr><td>Hỏi chuyên gia</td><td class="y">có</td><td class="y">có</td><td class="p">trả phí</td><td class="n">–</td><td class="y me">AI trả lời trước, cán bộ xác nhận</td></tr>
+          <tr><td>Cảnh báo thời tiết cực đoan</td><td class="y">có</td><td class="y">có</td><td class="p">Agrio</td><td class="n">–</td><td class="y me">quy theo độ cao từng vườn</td></tr>
+          <tr><td>Thời tiết thành nguy cơ bệnh</td><td class="n">–</td><td class="n">–</td><td class="p">một phần</td><td class="n">–</td><td class="y me">sương muối, gỉ sắt, mọt</td></tr>
+          <tr><td>Giá nông sản</td><td class="n">–</td><td class="y">có</td><td class="n">–</td><td class="n">–</td><td class="y me">bà con tự báo</td></tr>
+          <tr><td>Nhật ký canh tác</td><td class="n">–</td><td class="p">một phần</td><td class="n">–</td><td class="y">có</td><td class="y me">có, nhắc cách ly</td></tr>
+          <tr><td>Ranh giới vườn, hồ sơ EUDR</td><td class="n">–</td><td class="n">–</td><td class="n">–</td><td class="y">có</td><td class="y me">có, xuất GeoJSON</td></tr>
+          <tr><td>Bảng điều hành cấp tỉnh</td><td class="n">–</td><td class="n">–</td><td class="p">Agrio (doanh nghiệp)</td><td class="p">doanh nghiệp</td><td class="y me">có, gửi cảnh báo theo xã</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h2 style="font-size:16px">Để thành sản phẩm thật</h2>
+    <ul>
+      <li>Nối API thời tiết hằng giờ qua máy chủ trung gian; đặt trạm đo nhiệt độ lá tại vườn mẫu ở chỗ trũng để hiệu chỉnh hệ số khí lạnh đọng (bản demo dùng −3 °C).</li>
+      <li>Nhập dữ liệu vùng trồng tỉnh đã thu thập; đối chiếu ranh giới với bản đồ rừng EUDR của tỉnh.</li>
+      <li>Thu thập ảnh bệnh cà phê chè tại Sơn La để kiểm định mô hình nhận dạng.</li>
+      <li>Thẩm định nội dung kỹ thuật; thêm đọc to bằng tiếng Thái, tiếng Mông.</li>
+      <li>Đóng gói ứng dụng Android chạy offline-first; bảng điều hành chạy trên web cho Sở, xã, hợp tác xã.</li>
+    </ul>
+  </div>
+</aside>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script src="seed.js"></script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const REAL_TODAY = new Date(); REAL_TODAY.setHours(0,0,0,0);
+const DOW = ["CN","T2","T3","T4","T5","T6","T7"];
+const fmtD = d => d.getDate()+"/"+(d.getMonth()+1);
+const fmtDY = d => d.getDate()+"/"+(d.getMonth()+1)+"/"+d.getFullYear();
+const LV = ["Thấp","Theo dõi","Cao","Rất cao"];
+const MONTHS=["Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5","Tháng 6","Tháng 7","Tháng 8","Tháng 9","Tháng 10","Tháng 11","Tháng 12"];
+const CBY = Object.fromEntries(COMMUNES.map(c=>[c.id,c]));
+const cname = id => CBY[id] ? CBY[id].kind+" "+CBY[id].name : "—";
+function toast(t){ const el=$("#toast"); el.textContent=t; el.classList.add("on"); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove("on"),2600); }
+function iso(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function parseISO(s){ const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); }
+function mulberry(a){ return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+
+/* ================= THỜI TIẾT & MÔ HÌNH NGUY CƠ ================= */
+const S = { scenario:"real", layer:"frost", selC:null, selFarm:null };
+function DS(){ return WX[S.scenario]; }
+function scnToday(){ return addDays(parseISO(DS().start), DS().today); }
+function dayAt(cid, i){ const ds=DS(), w=ds.data[cid]; if(!w || i<0 || i>=w.tn.length) return null; return {d:addDays(parseISO(ds.start),i), tmin:w.tn[i], tmax:w.tx[i], rain:w.r[i], rh:w.h[i], cloud:w.c[i], wind:w.w[i]}; }
+function window7(cid){ const out=[]; for(let i=DS().today;i<DS().today+7;i++){ const d=dayAt(cid,i); if(d) out.push(d); } return out; }
+const POOL = {trung:-3, doc:-0.5, dinh:0.5};
+function radiative(day){ return day.cloud<35 && day.wind<16; }
+function farmAir(day, f){ const g=CBY[f.cid].gridElev; let t=day.tmin-0.6*((+f.elev||g)-g)/100; if(radiative(day)) t+=POOL[f.terrain]??0; return t; }
+function farmMax(day, f){ const g=CBY[f.cid].gridElev; return day.tmax-0.6*((+f.elev||g)-g)/100; }
+function leafT(day, f){ return farmAir(day,f) - (radiative(day)?3:1); }
+function frostLevel(day, f){ const t=leafT(day,f); return t<=-2?3: t<=0?2: t<=2?1:0; }
+function rustInfo(f){ let fav=0; for(const day of window7(f.cid)){ const mean=(farmAir(day,f)+farmMax(day,f))/2; if((day.rh>=88||day.rain>=1)&&mean>=15&&mean<=28) fav++; } let lvl=fav>=5?3:fav>=3?2:fav>=1?1:0; if(!["Catimor","Stamaya"].includes(f.variety)&&lvl>0&&lvl<3) lvl++; return {lvl,fav}; }
+function cbbInfo(){ const m=scnToday().getMonth(); return {lvl:[9,10,11,0].includes(m)?2:[7,8,1].includes(m)?1:0}; }
+function frostWorst(f){ let best={lvl:0,t:99,day:null,i:0}; window7(f.cid).forEach((d,i)=>{ const l=frostLevel(d,f), t=leafT(d,f); if(l>best.lvl||(l===best.lvl&&t<best.t)) best={lvl:l,t,day:d,i}; }); return best; }
+
+/* ================= SỔ ĐĂNG KÝ HỘ (DEMO) ================= */
+const R = mulberry(20261121);
+const pick = a => a[Math.floor(R()*a.length)];
+const between = (a,b) => a + R()*(b-a);
+const TH_HO=["Lò","Cà","Quàng","Lường","Tòng","Lù","Vì","Cầm","Điêu","Hoàng","Lò","Cà","Quàng"];
+const TH_NAM=["Minh","Hùng","Ơn","Pánh","Xuân","Thanh","Biên","Khoa","Tiến","Sơn","Phong","Quyết","Chung","Hặc","Nghiêm","Tuấn"];
+const TH_NU=["Lan","Mai","Ánh","Hương","Ngọc","Thu","Hiên","Nga","Dung","Phương","Ước","Kim"];
+const MG_HO=["Sồng","Giàng","Mùa","Thào","Vàng","Lầu","Lý","Hờ"];
+const MG_NAM=["Chứ","Lử","Sùng","Dế","Páo","Pó","Chua","Tủa","Vừ","Sính","Nếnh","Chống"];
+const MG_NU=["Mỷ","Dua","Sua","Pà","Chở","Si","Ka"];
+const KI_HO=["Nguyễn","Trần","Phạm","Lê","Đỗ","Bùi","Đinh","Vũ"];
+const KI_NAM=["Hải","Dũng","Cường","Long","Thành","Đức","Quân","Bình"];
+const KI_NU=["Hồng","Huyền","Thảo","Yến","Hà","Liên"];
+const BAN1=["Nà","Huổi","Pá","Co","Phiêng","Bó","Nong","Hua","Púng","Tà"], BAN2=["Lốm","Khoang","Sẳng","Hịa","Pết","Lạnh","Tậu","Mòn","Cáy","Nưa","Xa","Ổ"];
+const HTX_SUF=["Xanh","Thịnh Phát","Đồng Tâm"];
+const HIGHLAND=new Set(["namlau","chiengmai","muongchanh","sopcop"]);
+function personName(cid){
+  const r=R(), male=R()<.62, mongP=HIGHLAND.has(cid)?.32:.08;
+  if(r<mongP) return pick(MG_HO)+(male?" A ":" Thị ")+pick(male?MG_NAM:MG_NU);
+  if(r<mongP+.14) return pick(KI_HO)+(male?" Văn ":" Thị ")+pick(male?KI_NAM:KI_NU);
+  return pick(TH_HO)+(male?" Văn ":" Thị ")+pick(male?TH_NAM:TH_NU);
+}
+function polygonAround(lat,lng,ha,rand){
+  const side=Math.sqrt(ha*10000), n=4+Math.floor(rand()*3), rot=rand()*Math.PI, pts=[];
+  for(let k=0;k<n;k++){ const ang=rot+k*2*Math.PI/n+(rand()-.5)*.5, rr=side*.62*(0.8+rand()*.4); pts.push([lat+rr*Math.sin(ang)/110540, lng+rr*Math.cos(ang)/(111320*Math.cos(lat*Math.PI/180))]); }
+  return pts;
+}
+const FARMS=[];
+const PERSONAS=[
+ {key:"p1", owner:"Lò Văn Ơn", cid:"muongchanh", ban:"Bản Huổi Lốm", elev:1040, terrain:"trung", variety:"Catimor", planted:2014, area:1.6, cert:"4C", htx:0, msvt:true, land:true, forest:"ok", geom:"polygon", dlat:-.008, dlng:.006, note:"Vườn chỗ trũng, cao 1.000 m: nguy cơ sương muối cao khi phát lại đợt rét"},
+ {key:"p2", owner:"Cà Thị Xuân", cid:"chiengan", ban:"Bản Co Pết (Chiềng Đen cũ)", elev:800, terrain:"trung", variety:"Catimor", planted:2012, area:2.1, cert:"RA", htx:0, msvt:true, land:true, forest:"ok", geom:"polygon", dlat:-.02, dlng:-.012, note:"Hồ sơ EUDR đủ, vùng từng bị sương muối 1/2025"},
+ {key:"p3", owner:"Sồng A Chứ", cid:"namlau", ban:"Bản Phiêng Xa", elev:1060, terrain:"doc", variety:"Catimor", planted:2017, area:0.9, cert:"", htx:-1, msvt:false, land:true, forest:"ok", geom:"point", dlat:.01, dlng:.008, note:"Hộ người Mông chưa vào HTX, thiếu mã số vùng trồng"},
+ {key:"p4", owner:"Quàng Văn Pánh", cid:"muoinoi", ban:"Bản Nà Tậu", elev:700, terrain:"doc", variety:"Typica", planted:2011, area:2.4, cert:"4C", htx:1, msvt:true, land:true, forest:"ok", geom:"polygon", dlat:.006, dlng:-.01, note:"Vừa phun thuốc, đang trong thời gian cách ly"},
+ {key:"p5", owner:"Nguyễn Văn Hải", cid:"chiengmai", ban:"Bản Bó Nưa (Chiềng Ban cũ)", elev:930, terrain:"dinh", variety:"Stamaya", planted:2023, area:0.6, cert:"", htx:0, msvt:true, land:true, forest:"ok", geom:"polygon", dlat:.012, dlng:-.004, note:"Tái canh giống mới trên đất cà phê cũ: vẫn đạt EUDR"},
+ {key:"p6", owner:"Mùa A Sùng", cid:"sopcop", ban:"Bản Pá Ổ", elev:980, terrain:"doc", variety:"Catimor", planted:2022, area:1.2, cert:"", htx:-1, msvt:false, land:false, forest:"nghi", geom:"polygon", dlat:-.015, dlng:.02, note:"Trồng mới năm 2022, ranh giới nghi chồng lấn đất rừng"}
+];
+function makeFarm(c, seq, p){
+  const rand=R;
+  const f={ id:"SL-"+c.code+"-"+String(seq).padStart(4,"0"), cid:c.id };
+  if(p){
+    Object.assign(f,{persona:p.key, owner:p.owner, ban:p.ban, elev:p.elev, terrain:p.terrain, variety:p.variety, planted:p.planted, area:p.area, cert:p.cert, landPre2020:p.land, forest:p.forest, geomType:p.geom, note:p.note});
+    f.lat=c.lat+p.dlat; f.lng=c.lng+p.dlng;
+    f.htx = p.htx<0 ? "" : "HTX "+c.name+" "+HTX_SUF[p.htx]+" (demo)";
+    f.msvt = p.msvt ? "SL-CF-"+c.code+"-"+String(100+seq).padStart(4,"0") : "";
+  } else {
+    f.owner=personName(c.id); f.ban="Bản "+pick(BAN1)+" "+pick(BAN2);
+    f.elev=Math.round(between(c.range[0],c.range[1])/10)*10;
+    const tr=R(); f.terrain= tr<.64?"doc":tr<.84?"trung":"dinh";
+    const v=R(); f.variety = c.id==="chiengmai"&&v<.08?"Stamaya": v<.9?"Catimor": v<.96?"Typica":"Bourbon";
+    const y=R(); f.planted = y<.86 ? 2004+Math.floor(R()*17) : 2021+Math.floor(R()*4);
+    f.area = Math.round(Math.min(5.6, Math.max(.25, Math.exp(between(-1.1,1.25))))*10)/10;
+    f.htx = R()<.66 ? "HTX "+c.name+" "+HTX_SUF[Math.floor(R()*2)]+" (demo)" : "";
+    f.msvt = (f.htx? R()<.86 : R()<.3) ? "SL-CF-"+c.code+"-"+String(100+seq).padStart(4,"0") : "";
+    const ce=R(); f.cert = f.htx ? (ce<.55?"4C":ce<.8?"RA":ce<.83?"Hữu cơ":"") : (ce<.25?"4C":"");
+    f.landPre2020 = f.planted<=2020 ? true : R()<.7;
+    f.forest = (f.planted>2020 && R()<.35) || R()<.015 ? "nghi" : "ok";
+    const g=R(); f.geomType = g<.78?"polygon": g<.92?"point":"none";
+    const ang=R()*Math.PI*2, dist=Math.sqrt(R())*.045; f.lat=c.lat+dist*Math.sin(ang)*.8; f.lng=c.lng+dist*Math.cos(ang);
+  }
+  f.trees=Math.round(f.area*4400/10)*10;
+  f.coords = f.geomType==="polygon" ? polygonAround(f.lat,f.lng,f.area,rand) : f.geomType==="point" ? [[f.lat,f.lng]] : [];
+  const age=2026-f.planted; const yph = age<2?0: age<3? between(2,4): between(8,14);
+  f.yieldT = Math.round(f.area*yph*10)/10;
+  f.harvestedKg = age<2?0: Math.round(f.yieldT*1000*between(.35,.7)/10)*10;
+  return f;
+}
+(function buildRegistry(){
+  COMMUNES.forEach(c=>{ let seq=1; PERSONAS.filter(p=>p.cid===c.id).forEach(p=>FARMS.push(makeFarm(c,seq++,p))); while(seq<=c.n) FARMS.push(makeFarm(c,seq++,null)); });
+})();
+function eudrGaps(f){
+  const g=[]; if(!f.coords||!f.coords.length) g.push("Thiếu toạ độ vườn"); else if(f.area>4 && f.coords.length<3) g.push("Trên 4 ha cần ranh giới đủ góc");
+  if(!f.landPre2020) g.push("Chưa xác nhận đất trước 31/12/2020");
+  if(f.forest==="nghi") g.push("Ranh giới nghi chồng lấn đất rừng");
+  if(!String(f.msvt||"").trim()) g.push("Chưa có mã số vùng trồng");
+  return g;
+}
+function makeDiary(f){
+  const T=REAL_TODAY, d=n=>iso(addDays(T,-n)), out=[], kg=Math.max(0,Math.round(f.harvestedKg/3/10)*10);
+  if(kg){ out.push({d:d(38),type:"Thu hái",note:"Hái lứa 1, quả chín trên 90%",qty:kg+" kg quả tươi"}); out.push({d:d(21),type:"Thu hái",note:"Hái lứa 2",qty:Math.round(kg*1.3/10)*10+" kg quả tươi"}); out.push({d:d(6),type:"Thu hái",note:"Hái lứa 3",qty:Math.round(kg*.7/10)*10+" kg quả tươi"}); out.push({d:d(6),type:"Khác",note:"Bán cho "+(f.htx||"thương lái"),qty:""}); }
+  out.push({d:d(80),type:"Bón phân",note:"Bón kali nuôi quả",qty:Math.round(f.area*150)+" kg"});
+  out.push({d:d(65),type:"Phun thuốc BVTV",note:"Phun gốc đồng phòng gỉ sắt",qty:"thuốc gốc đồng",phi:7});
+  if(f.persona==="p4") out.push({d:d(4),type:"Phun thuốc BVTV",note:"Phun trừ rệp sáp lô phía dưới dốc",qty:"chế phẩm theo nhãn",phi:14});
+  if(f.persona==="p5") out.push({d:d(120),type:"Khác",note:"Trồng dặm giống Stamaya",qty:"120 cây"});
+  return out.map((e,i)=>({id:"e"+i,...e}));
+}
+
+/* ================= TRẠNG THÁI NÔNG DÂN ================= */
+const LS="cptb2-v2";
+const OWN_DEFAULT={ id:"OWN", persona:"own", owner:"", ban:"", cid:"chiengmai", elev:900, terrain:"doc", variety:"Catimor", area:1, msvt:"", landPre2020:false, forest:"ok", coordsText:"", htx:"" };
+let OWN={...OWN_DEFAULT}, OWN_DIARY=[], TASKS_DONE={};
+try{ const o=JSON.parse(localStorage.getItem(LS)||"null"); if(o){ if(o.own) OWN={...OWN_DEFAULT,...o.own}; if(Array.isArray(o.diary)) OWN_DIARY=o.diary; if(o.tasks) TASKS_DONE=o.tasks; if(o.persona) S.persona=o.persona; } }catch(e){}
+function saveLocal(){ try{ localStorage.setItem(LS, JSON.stringify({own:OWN, diary:OWN_DIARY, tasks:TASKS_DONE, persona:S.persona})); }catch(e){} }
+if(!S.persona) S.persona="p1";
+let CUR=null, DIARY=[];
+function setPersona(key){
+  S.persona=key; saveLocal();
+  if(key==="own"){ CUR=OWN; DIARY=OWN_DIARY; }
+  else { CUR=FARMS.find(f=>f.persona===key); if(!CUR.diary) CUR.diary=makeDiary(CUR); DIARY=CUR.diary; }
+  renderAll();
+}
+function curCoords(){ return CUR.persona==="own" ? parseCoords(OWN.coordsText) : (CUR.coords||[]); }
+function curFarmForGaps(){ return CUR.persona==="own" ? {...OWN, coords:parseCoords(OWN.coordsText), forest:OWN.forest} : CUR; }
+
+/* ================= LỊCH, KIẾN THỨC ================= */
+const CAL=[
+ {months:[9,10,11],items:["Hái quả chín đỏ trên 90%, không tuốt cả cành","Sơ chế trong ngày hái, quả để qua đêm dễ lên men hỏng","Nhặt sạch quả rụng, quả khô sót trên cây để cắt nguồn mọt","Không xả nước thải sơ chế ra suối, dẫn vào hố lắng","Chuẩn bị chống rét: tủ gốc bằng cỏ, rơm; che cây non","Ghi nhật ký thu hái để làm hồ sơ truy xuất"]},
+ {months:[0,1],items:["Hoàn tất thu hái, nhặt quả sót","Theo dõi cảnh báo sương muối mỗi chiều","Tỉa cành sau thu hoạch: bỏ cành khô, cành vượt, cành sâu bệnh","Vệ sinh vườn, quét vôi gốc cây bị xén tóc"]},
+ {months:[2,3],items:["Theo dõi ra hoa sau mưa đầu mùa","Bón phân đợt 1 khi đất đủ ẩm","Tưới bổ sung nếu khô hạn kéo dài và có nguồn nước"]},
+ {months:[4,5,6],items:["Bón phân đợt 2, làm cỏ, giữ băng cỏ chống xói mòn","Kiểm tra mặt dưới lá tìm gỉ sắt mỗi tuần","Theo dõi rệp sáp ở chùm quả non, diệt tổ kiến","Trồng dặm, trồng cây che bóng"]},
+ {months:[7,8],items:["Bón phân đợt 3, ưu tiên kali cho quả","Tỉa chồi vượt, cắt cành khô quả","Phòng nấm hồng, khô cành khô quả sau mưa nhiều","Chuẩn bị sân phơi, giàn phơi cho thu hoạch"]}
+];
+const LIB=[
+ {id:"rust",name:"Bệnh gỉ sắt",sci:"Hemileia vastatrix",sign:["Mặt dưới lá có đốm bột màu vàng cam","Mặt trên lá có vết vàng nhạt tương ứng","Lá rụng sớm, cành trơ, quả nhỏ"],cause:"Nấm lây lan mạnh khi trời ẩm, mưa nhiều, nhiệt độ khoảng 15–28 °C, vườn rậm rạp.",act:["Tỉa cành cho vườn thông thoáng","Bón phân cân đối, không để cây kiệt sức sau vụ sai quả","Khi bệnh lan rộng: dùng thuốc gốc đồng hoặc nhóm triazole trong Danh mục, theo đúng nhãn"],prev:["Trồng giống kháng, thay dần cây già nhiễm nặng","Kiểm tra mặt dưới lá mỗi tuần trong mùa mưa"]},
+ {id:"frost",name:"Sương muối, băng giá",sci:"Hại do thời tiết",sign:["Lá non, ngọn và phần tán phía trên cháy nâu đen sau đêm rét","Cây non hoặc vườn ở chỗ trũng bị nặng hơn","Vết cháy xuất hiện đồng loạt cả vườn, không lan dần như bệnh"],cause:"Đêm trời quang, lặng gió, khí lạnh dồn xuống thung lũng; mặt lá lạnh hơn không khí 2–4 °C nên có thể dưới 0 °C dù nhiệt độ không khí còn vài độ.",act:["Sáng sớm phun nước rửa sương trên lá trước khi nắng lên","Khi trời ấm lại: cắt bỏ cành, lá đã cháy để cây đỡ mất nước","Bón bổ sung phân để cây hồi phục"],prev:["Trồng cây che bóng (gió bầu, mắc ca, muồng)","Tủ gốc, che cây non bằng rơm hoặc lưới","Tránh trồng mới ở thung lũng, chỗ trũng đọng khí lạnh"]},
+ {id:"cbb",name:"Mọt đục quả",sci:"Hypothenemus hampei",sign:["Lỗ nhỏ khoảng 1 mm ở núm quả","Quả non rụng nhiều, nhân bị đục rỗng","Quả khô sót trên cây có mọt trú ẩn"],cause:"Mọt sống qua mùa trong quả sót, quả rụng rồi bay sang quả mới.",act:["Hái sạch, nhặt hết quả rụng và quả sót đem tiêu huỷ","Treo bẫy mọt bằng chất dẫn dụ","Dùng chế phẩm nấm Beauveria theo hướng dẫn"],prev:["Phơi nhân khô đều, bảo quản nơi khô ráo","Thu hái đúng lứa, không để quả chín quá lâu trên cây"]},
+ {id:"mealy",name:"Rệp sáp",sci:"Planococcus spp.",sign:["Đám bông trắng ở chùm quả, cuống quả, kẽ lá","Nhiều kiến bò trên cây","Lá, quả phủ lớp muội đen"],cause:"Rệp phát triển mạnh mùa khô và đầu mùa mưa, được kiến mang đi lây lan.",act:["Diệt tổ kiến quanh gốc","Cắt bỏ chùm quả bị nặng","Dùng chế phẩm sinh học hoặc dầu khoáng; thuốc hoá học theo Danh mục khi mật độ cao"],prev:["Kiểm tra chùm quả non mỗi tuần","Giữ thiên địch như bọ rùa, ong ký sinh"]},
+ {id:"anthrac",name:"Khô cành khô quả",sci:"Colletotrichum spp.",sign:["Quả thâm đen, khô cứng trên cành","Cành khô dần từ ngọn vào","Lá vàng rụng ở cành mang nhiều quả"],cause:"Nấm hại kết hợp cây kiệt sức do sai quả, thiếu dinh dưỡng, mưa nhiều.",act:["Cắt bỏ cành, quả bệnh đem tiêu huỷ","Bón phân cân đối, bổ sung kali","Dùng thuốc gốc đồng khi bệnh lan, theo nhãn"],prev:["Không để cây ra quá nhiều quả so với sức","Che bóng vừa phải"]},
+ {id:"borer",name:"Sâu đục thân (xén tóc)",sci:"Xylotrechus quadripes",sign:["Thân, cành có lỗ đục, đùn mùn gỗ","Cây héo vàng dù đất đủ ẩm","Vỏ thân có đường vòng nổi gờ"],cause:"Xén tóc đẻ trứng vào vỏ thân, ưa vườn nhiều nắng, không cây che bóng.",act:["Cưa bỏ, đốt thân cành bị hại nặng","Quét vôi lên thân trước mùa xén tóc đẻ trứng"],prev:["Trồng cây che bóng","Kiểm tra thân cây vào mùa xuân"]},
+ {id:"pink",name:"Nấm hồng",sci:"Corticium salmonicolor",sign:["Lớp nấm màu hồng phủ trên cành, thường ở phía trong tán","Cành phía trên chỗ bệnh khô chết"],cause:"Mưa nhiều, ẩm kéo dài, tán rậm.",act:["Cắt bỏ cành bệnh, cắt thấp hơn chỗ bệnh 10–15 cm","Dùng thuốc gốc đồng quét hoặc phun theo nhãn"],prev:["Tỉa thông thoáng trước mùa mưa"]},
+ {id:"nutri",name:"Thiếu dinh dưỡng",sci:"Đạm, kali, kẽm, bo",sign:["Lá vàng đều cả cây: thường thiếu đạm","Cháy mép lá, quả nhỏ: thường thiếu kali","Lá nhỏ, mọc thành chùm ở ngọn: thường thiếu kẽm"],cause:"Bón phân không cân đối, đất dốc bị rửa trôi, cây sai quả.",act:["Bón bổ sung theo triệu chứng, chia nhiều lần","Phun phân vi lượng qua lá khi thiếu kẽm, bo"],prev:["Phân tích đất 2–3 năm một lần","Giữ băng cỏ, tủ gốc chống rửa trôi"]}
+];
+const SYMS=[["Bột vàng cam ở mặt dưới lá",{rust:3}],["Lá non, ngọn cháy đen sau đêm rét",{frost:3}],["Lỗ nhỏ ở núm quả",{cbb:3}],["Quả non rụng nhiều",{cbb:1,anthrac:1}],["Đám bông trắng ở chùm quả",{mealy:3}],["Kiến bò nhiều trên cây",{mealy:1}],["Quả thâm đen, cành khô từ ngọn",{anthrac:3}],["Thân cành có lỗ đục, mùn gỗ",{borer:3}],["Cây héo dù đất ẩm",{borer:2}],["Lớp nấm hồng trên cành",{pink:3}],["Lá vàng đều cả cây",{nutri:2}],["Rụng lá nhiều",{rust:1,nutri:1}]];
+
+/* ================= HÔM NAY ================= */
+let ALERTS={list:[],frost:0,rust:0,cbb:0};
+function buildAlerts(f){
+  const out=[], fw=frostWorst(f), days=window7(f.cid);
+  if(fw.lvl>=1){
+    const first = days.map((d,i)=>({d,i,l:frostLevel(d,f),t:leafT(d,f)})).find(x=>x.l>=Math.min(2,fw.lvl)) || {d:fw.day,i:fw.i,t:fw.t};
+    const when = first.i===0?"đêm nay":first.i===1?"đêm mai":"đêm "+DOW[first.d.d.getDay()]+" "+fmtD(first.d.d);
+    out.push({k:"frost",lvl:fw.lvl,title:fw.lvl>=2?"Nguy cơ sương muối "+when:"Đêm lạnh, theo dõi sương muối",
+      body:"Nhiệt độ không khí tại vườn ước "+farmAir(first.d,f).toFixed(1)+" °C, mặt lá ước "+first.t.toFixed(1)+" °C ở độ cao "+f.elev+" m"+(f.terrain==="trung"?", vườn ở chỗ trũng nên khí lạnh dồn xuống":"")+". Trời quang, lặng gió làm mặt lá lạnh hơn không khí.",
+      acts:fw.lvl>=2?["Trước 17 giờ: tủ gốc, che cây non bằng rơm hoặc lưới","Tưới ẩm đất nếu có nước, đất ẩm giữ nhiệt tốt hơn","Sáng sớm hôm sau: phun nước rửa sương trên lá trước khi nắng lên","Không cắt cành cháy ngay; đợi trời ấm lại mới cắt"]:["Chuẩn bị rơm, lưới che cây non","Xem lại cảnh báo chiều mai"]});
+  }
+  const ru=rustInfo(f);
+  if(ru.lvl>=2) out.push({k:"rust",lvl:ru.lvl,title:"Thời tiết thuận lợi cho bệnh gỉ sắt",body:ru.fav+" trong 7 ngày tới ẩm ướt, nhiệt độ hợp cho nấm nảy mầm. Giống "+f.variety+(["Catimor","Stamaya"].includes(f.variety)?" kháng một phần, nhưng đã có chủng gỉ sắt vượt kháng.":" dễ nhiễm."),acts:["Kiểm tra mặt dưới lá ở 10 cây rải đều trong vườn","Nếu hơn 1/10 số lá có bột vàng cam: báo cán bộ khuyến nông xã","Tỉa bớt cành rậm cho thông thoáng khi trời tạnh"]});
+  const cb=cbbInfo();
+  if(cb.lvl>=2) out.push({k:"cbb",lvl:cb.lvl,title:"Mùa thu hái: phòng mọt đục quả",body:"Mọt sống qua mùa trong quả sót và quả rụng. Hái sạch là cách phòng rẻ nhất.",acts:["Hái hết quả chín, không để quả khô trên cây","Nhặt quả rụng dưới gốc sau mỗi lứa hái","Phơi nhân khô đều trước khi cất"]});
+  out.sort((a,b)=>b.lvl-a.lvl);
+  return {list:out,frost:fw.lvl,rust:ru.lvl,cbb:cb.lvl};
+}
+function renderToday(){
+  const f=CUR; ALERTS=buildAlerts(f);
+  const td=scnToday(), replay=S.scenario==="jan25";
+  $("#scn-note").textContent = DS().note+". Ô lưới "+cname(f.cid)+" cao "+CBY[f.cid].gridElev+" m.";
+  $("#today-date").textContent = DOW[td.getDay()]+", "+fmtDY(td)+(replay?" (phát lại)":"");
+  $("#hello-name").textContent = "Chào "+(f.owner||"bà con");
+  $("#farmchip").textContent = cname(f.cid)+" · "+f.elev+" m";
+  const rb=$("#replay-banner");
+  if(replay){ rb.style.display=""; rb.textContent="Đang phát lại số liệu thời tiết thật ngày 10–16/1/2025. Đêm 12/1/2025 sương muối làm hại gần 100 ha cà phê ở Chiềng Đen, Hua La, Chiềng Cọ. Hãy xem app cảnh báo trước mấy ngày."; } else rb.style.display="none";
+  const a=ALERTS.list[0], el=$("#alert");
+  if(!a){ el.className="card alert l0"; el.innerHTML='<div class="lvl">Ổn định</div><h3>Không có cảnh báo trong 7 ngày tới</h3><div class="small muted">Đêm lạnh nhất tại vườn ước '+Math.min(...window7(f.cid).map(d=>farmAir(d,f))).toFixed(1)+' °C. Tiếp tục theo dõi mỗi chiều.</div>'; }
+  else { el.className="card alert l"+a.lvl; el.innerHTML='<div class="row" style="justify-content:space-between"><span class="lvl">Nguy cơ '+LV[a.lvl].toLowerCase()+'</span><button class="btn ghost" id="speak" style="display:none;padding:4px 10px">Đọc to</button></div><h3>'+esc(a.title)+'</h3><div class="small">'+esc(a.body)+'</div><ol class="small">'+a.acts.map(x=>"<li>"+esc(x)+"</li>").join("")+'</ol>'+(ALERTS.list.length>1?'<div class="tiny muted" style="margin-top:8px">Còn '+(ALERTS.list.length-1)+' cảnh báo khác: '+ALERTS.list.slice(1).map(x=>esc(x.title.toLowerCase())).join("; ")+'.</div>':""); wireSpeak(a); }
+  const risks=[["Sương muối",ALERTS.frost,"frost"],["Gỉ sắt",ALERTS.rust,"rust"],["Mọt đục quả",ALERTS.cbb,"cbb"]];
+  $("#risks").innerHTML=risks.map(([n,l,id])=>'<button class="risk l'+l+'" data-lib="'+id+'"><div class="name">'+n+'</div><div class="val">'+LV[l]+'</div><div class="meter">'+[0,1,2,3].map(i=>'<i class="'+(i<=l?"f":"")+'"></i>').join("")+'</div></button>').join("");
+  $("#fc-sub").textContent="vườn "+f.elev+" m";
+  $("#fc").innerHTML=window7(f.cid).map((d,i)=>{ const l=frostLevel(d,f), h=Math.min(34,Math.round(d.rain*2.2)); return '<div class="day'+(i===0?" today":"")+' l'+l+'"><div class="dn">'+(i===0?"Nay":DOW[d.d.getDay()])+'</div><div class="tiny muted">'+fmtD(d.d)+'</div><div class="tmin">'+Math.round(farmAir(d,f))+'°</div><div class="tiny muted">'+Math.round(farmMax(d,f))+'°</div><div class="bar" title="'+d.rain.toFixed(1)+' mm"><span style="height:'+h+'px"></span></div><div class="tiny muted">'+(d.rain>=.5?d.rain.toFixed(0)+"mm":"–")+'</div><div class="dot" title="Sương muối: '+LV[l]+'"></div></div>'; }).join("");
+  renderPHI(); renderTasks(); renderBroadcastForFarmer();
+}
+function renderPHI(){
+  let latest=null; for(const e of DIARY){ if(e.type==="Phun thuốc BVTV"&&+e.phi>0){ const d=addDays(parseISO(e.d),+e.phi); if(!latest||d>latest.d) latest={d,e}; } }
+  const c=$("#phi-card");
+  if(S.scenario==="real" && latest && latest.d>REAL_TODAY){ c.style.display=""; c.className="card alert l2"; c.innerHTML='<div class="lvl">Thời gian cách ly</div><h3>Chưa thu hái lô đã phun trước ngày '+fmtD(latest.d)+'</h3><div class="small">'+esc(latest.e.note)+' ('+esc(latest.e.d.split("-").reverse().join("/"))+', cách ly '+latest.e.phi+' ngày). Thu hái sớm có thể còn tồn dư thuốc và bị trả hàng.</div>'; }
+  else c.style.display="none";
+}
+function renderTasks(){
+  const m=scnToday().getMonth(), set=CAL.find(c=>c.months.includes(m));
+  $("#month-name").textContent=MONTHS[m];
+  $("#tasks").innerHTML=set.items.map((t,i)=>{ const k=m+"-"+i, done=!!TASKS_DONE[k]; return '<label class="check'+(done?" done":"")+'" for="tk'+i+'"><input type="checkbox" id="tk'+i+'" data-k="'+k+'"'+(done?" checked":"")+'><span class="small">'+esc(t)+'</span></label>'; }).join("");
+}
+$("#tasks").addEventListener("change",e=>{ const k=e.target.dataset.k; if(!k) return; TASKS_DONE[k]=e.target.checked; saveLocal(); e.target.closest(".check").classList.toggle("done",e.target.checked); });
+$("#scn").addEventListener("click",e=>{ const b=e.target.closest("[data-s]"); if(!b) return; setScenario(b.dataset.s); });
+function updateScnLabel(){ const ds=WX.real, a=addDays(parseISO(ds.start),ds.today); $("#chip-real").textContent="Dự báo thật "+fmtD(a)+"–"+fmtD(addDays(a,6)); }
+function setScenario(s){ S.scenario=s; document.querySelectorAll("#scn .chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.s===s)); renderToday(); renderProvince(); }
+$("#risks").addEventListener("click",e=>{ const b=e.target.closest("[data-lib]"); if(b) openLib(b.dataset.lib); });
+$("#persona").addEventListener("change",e=>setPersona(e.target.value));
+
+let TTS=null;
+function wireSpeak(a){ const b=$("#speak"); if(!b||!TTS) return; b.style.display=""; b.onclick=async()=>{ try{ b.textContent="Đang đọc…"; await TTS.speak(a.title+". "+a.body+" Việc cần làm: "+a.acts.join(". ")+".",{rate:.9}); }catch(err){ if(err&&err.code==="not_granted") b.style.display="none"; } b.textContent="Đọc to"; }; }
+
+function show(v){
+  document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v));
+  document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on",s.id==="v-"+v));
+  $("#views").scrollTop=0; if(v==="farm") drawPlot();
+}
+$("#tabs").addEventListener("click",e=>{ const b=e.target.closest("[data-v]"); if(b) show(b.dataset.v); });
+$("#infobtn").onclick=()=>{ document.body.classList.add("show-side"); drawMap(); };
+$("#closeside").onclick=()=>document.body.classList.remove("show-side");
+
+/* ================= KIẾN THỨC & TRIỆU CHỨNG ================= */
+function renderLib(q=""){
+  const n=q.trim().toLowerCase(); const items=LIB.filter(x=>!n||(x.name+" "+x.sci+" "+x.sign.join(" ")+" "+x.cause).toLowerCase().includes(n));
+  $("#lib").innerHTML=items.length?items.map(x=>'<details id="lib-'+x.id+'"><summary>'+esc(x.name)+' <span class="sci">'+esc(x.sci)+'</span></summary><h4>Dấu hiệu</h4><ul>'+x.sign.map(s=>"<li>"+esc(s)+"</li>").join("")+'</ul><h4>Nguyên nhân</h4><div class="small">'+esc(x.cause)+'</div><h4>Xử lý</h4><ul>'+x.act.map(s=>"<li>"+esc(s)+"</li>").join("")+'</ul><h4>Phòng ngừa</h4><ul>'+x.prev.map(s=>"<li>"+esc(s)+"</li>").join("")+'</ul></details>').join(""):'<div class="card small muted">Không tìm thấy. Thử từ khác hoặc hỏi trợ lý ở mục Hỏi đáp.</div>';
+}
+function openLib(id){ show("lib"); $("#lib-q").value=""; renderLib(); const d=$("#lib-"+id); if(d){ d.open=true; d.scrollIntoView({block:"start"}); } }
+$("#lib-q").addEventListener("input",e=>renderLib(e.target.value));
+$("#syms").innerHTML=SYMS.map((s,i)=>'<label class="sym" for="sy'+i+'"><input type="checkbox" id="sy'+i+'" data-i="'+i+'"> '+esc(s[0])+'</label>').join("");
+$("#syms").addEventListener("change",()=>{ const sc={}; document.querySelectorAll("#syms input:checked").forEach(c=>{ const w=SYMS[+c.dataset.i][1]; for(const k in w) sc[k]=(sc[k]||0)+w[k]; }); const top=Object.entries(sc).sort((a,b)=>b[1]-a[1]).slice(0,2); $("#sym-out").innerHTML=top.length?'<div class="small" style="font-weight:700;margin-top:4px">Có thể là:</div>'+top.map(([k,v])=>{ const x=LIB.find(l=>l.id===k); return '<div class="row" style="justify-content:space-between;margin-top:6px"><span>'+esc(x.name)+' <span class="tiny muted">('+(v>=3?"khớp nhiều":"khớp ít")+')</span></span><button class="btn" data-open="'+k+'">Xem cách xử lý</button></div>'; }).join(""):""; });
+$("#sym-out").addEventListener("click",e=>{ const b=e.target.closest("[data-open]"); if(b) openLib(b.dataset.open); });
+
+/* ================= VƯỜN ================= */
+$("#f-cid").innerHTML=COMMUNES.map(c=>'<option value="'+c.id+'">'+esc(c.kind+" "+c.name)+'</option>').join("");
+const FF={owner:"f-owner",msvt:"f-msvt",ban:"f-ban",cid:"f-cid",elev:"f-elev",terrain:"f-terrain",variety:"f-variety",area:"f-area"};
+function fillFarm(){
+  const own=CUR.persona==="own";
+  for(const k in FF){ const el=$("#"+FF[k]); el.value=CUR[k]??""; el.disabled=!own; }
+  $("#f-coords").value = own ? OWN.coordsText : (CUR.coords||[]).map(p=>p[0].toFixed(5)+", "+p[1].toFixed(5)).join("\n"); $("#f-coords").disabled=!own;
+  $("#f-pre2020").checked=!!CUR.landPre2020; $("#f-forest").checked=CUR.forest!=="nghi"; $("#f-pre2020").disabled=!own; $("#f-forest").disabled=!own;
+  $("#farm-lock").textContent = own ? "Hồ sơ tự nhập: được lưu riêng cho bạn." : "Hộ mẫu "+CUR.id+(CUR.htx?" · "+CUR.htx:"")+(CUR.cert?" · chứng nhận "+CUR.cert:"")+". "+(CUR.note||"")+" Chọn \"Hồ sơ tự nhập\" ở trang Hôm nay để nhập vườn của bạn.";
+}
+function parseCoords(txt){ return String(txt||"").split(/\n+/).map(l=>l.split(/[,;\s]+/).filter(Boolean).map(Number)).filter(p=>p.length>=2&&isFinite(p[0])&&isFinite(p[1])&&Math.abs(p[0])<=90&&Math.abs(p[1])<=180).map(p=>[p[0],p[1]]); }
+function areaHa(pts){ if(pts.length<3) return 0; const lat0=pts.reduce((s,p)=>s+p[0],0)/pts.length*Math.PI/180; const xy=pts.map(p=>[p[1]*111320*Math.cos(lat0),p[0]*110540]); let a=0; for(let i=0;i<xy.length;i++){ const j=(i+1)%xy.length; a+=xy[i][0]*xy[j][1]-xy[j][0]*xy[i][1]; } return Math.abs(a)/2/10000; }
+function drawPlot(){
+  const cv=$("#plot"), ctx=cv.getContext("2d"), W=cv.width, H=cv.height; ctx.clearRect(0,0,W,H);
+  const pts=curCoords(), cs=getComputedStyle(document.documentElement), ha=areaHa(pts);
+  $("#area-out").innerHTML=pts.length?(pts.length>=3?'Diện tích theo ranh giới <b class="num">'+ha.toFixed(2)+' ha</b> · '+pts.length+' điểm':'Có 1 điểm toạ độ (vườn ≤ 4 ha được phép dùng 1 điểm).'):'<span style="color:var(--warn)">Chưa có toạ độ vườn.</span>';
+  if(!pts.length) return;
+  const lat0=pts[0][0]*Math.PI/180, xy=pts.map(p=>[p[1]*Math.cos(lat0),p[0]]), xs=xy.map(p=>p[0]), ys=xy.map(p=>p[1]);
+  const minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys), span=Math.max(maxx-minx,maxy-miny)||1e-4, pad=30, sc=Math.min(W-2*pad,H-2*pad)/span;
+  const ox=(W-(maxx-minx)*sc)/2, oy=(H-(maxy-miny)*sc)/2, P=xy.map(p=>[ox+(p[0]-minx)*sc,H-(oy+(p[1]-miny)*sc)]);
+  ctx.lineWidth=3; ctx.strokeStyle=cs.getPropertyValue("--leaf").trim(); ctx.fillStyle=cs.getPropertyValue("--leaf-soft").trim();
+  if(P.length>=3){ ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  ctx.fillStyle=cs.getPropertyValue("--cherry").trim(); P.forEach(p=>{ ctx.beginPath(); ctx.arc(p[0],p[1],6,0,7); ctx.fill(); });
+}
+function eudr(){
+  const f=curFarmForGaps(), gaps=eudrGaps(f);
+  const items=[["Toạ độ vườn",!gaps.some(g=>g.includes("toạ độ")||g.includes("ranh giới đủ")),f.coords.length?(f.coords.length>=3?"Ranh giới "+f.coords.length+" điểm":"1 điểm toạ độ"):"Chưa có"],
+    ["Đất nông nghiệp trước 31/12/2020",!!f.landPre2020,"Mốc của quy định chống phá rừng"],
+    ["Không chồng lấn đất rừng",f.forest!=="nghi",f.forest==="nghi"?"Cần xã kiểm tra thực địa":"Đã đối chiếu bản đồ rừng (demo)"],
+    ["Mã số vùng trồng",!!String(f.msvt||"").trim(),String(f.msvt||"").trim()||"Liên hệ HTX hoặc cán bộ nông nghiệp xã"],
+    ["Nhật ký thu hái",DIARY.some(e=>e.type==="Thu hái"),DIARY.filter(e=>e.type==="Thu hái").length+" lần ghi"]];
+  const ok=items.filter(i=>i[1]).length; $("#eudr-bar").style.width=(ok/items.length*100)+"%";
+  const dl=Math.ceil((new Date(2026,11,30)-REAL_TODAY)/86400000); $("#eudr-days").textContent=dl>0?"còn "+dl+" ngày":"đang áp dụng";
+  $("#eudr-list").innerHTML='<div class="small" style="margin-bottom:4px"><b>'+ok+'/'+items.length+'</b> mục đã đủ. Doanh nghiệp lớn và vừa phải chứng minh nguồn gốc từ 30/12/2026.</div>'+items.map(i=>'<div class="ck"><span class="m'+(i[1]?" y":"")+'">'+(i[1]?"✓":"!")+'</span><span><b>'+esc(i[0])+'</b><br><span class="tiny muted">'+esc(i[2])+'</span></span></div>').join("");
+  renderQR(f, areaHa(f.coords)||f.area);
+}
+function plain(s){ return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D").replace(/[|]/g,"/"); }
+function renderQR(f,ha){
+  const box=$("#qr-box"); if(typeof qrcode!=="function"){ box.innerHTML='<div class="tiny muted">Không tải được thư viện mã QR.</div>'; return; }
+  const pts=f.coords, c=pts.length?[pts.reduce((s,p)=>s+p[0],0)/pts.length,pts.reduce((s,p)=>s+p[1],0)/pts.length]:null;
+  const payload=["CPTB2",f.id||"OWN","MSVT:"+plain(f.msvt||"chua co"),"Ho:"+plain(f.owner),"Xa:"+plain(cname(f.cid)),"Giong:"+plain(f.variety),"Tam:"+(c?c[0].toFixed(5)+","+c[1].toFixed(5):"-"),"DT:"+(+ha||0).toFixed(2)+"ha","Dat2020:"+(f.landPre2020?"Y":"N")].join("|");
+  try{ const q=qrcode(0,"M"); q.addData(payload); q.make(); box.innerHTML='<img alt="Mã QR hồ sơ vườn" src="'+q.createDataURL(4,2)+'"><div class="tiny muted">Mã QR hồ sơ vườn để HTX, thương lái quét khi thu mua. Bản thật mở trang truy xuất trực tuyến.</div>'; }catch(e){ box.innerHTML=""; }
+}
+function renderDiary(){
+  const list=DIARY.slice().sort((a,b)=>b.d.localeCompare(a.d)); $("#diary-count").textContent=list.length+" mục";
+  $("#diary").innerHTML=list.length?list.map(e=>'<div class="dr"><span class="num muted">'+esc(e.d.split("-").reverse().slice(0,2).join("/"))+'</span><span><b>'+esc(e.type)+'</b> · '+esc(e.note)+(e.qty?' <span class="muted">('+esc(e.qty)+')</span>':"")+(e.phi?' <span class="tag">cách ly '+esc(e.phi)+' ngày</span>':"")+'</span></div>').join(""):'<div class="small muted">Chưa có mục nào.</div>';
+}
+function ownChanged(){ saveLocal(); renderToday(); eudr(); drawPlot(); queueRemoteSave(); }
+for(const k in FF){ $("#"+FF[k]).addEventListener("input",e=>{ if(CUR.persona!=="own") return; let v=e.target.value; if(k==="elev") v=Math.max(0,Math.round(+v))||CBY[OWN.cid].gridElev; if(k==="area") v=Math.max(0,+v||0); OWN[k]=v; ownChanged(); }); }
+$("#f-coords").addEventListener("input",e=>{ if(CUR.persona!=="own") return; OWN.coordsText=e.target.value; ownChanged(); });
+$("#f-pre2020").addEventListener("change",e=>{ OWN.landPre2020=e.target.checked; ownChanged(); });
+$("#f-forest").addEventListener("change",e=>{ OWN.forest=e.target.checked?"ok":"nghi"; ownChanged(); });
+$("#d-date").value=iso(REAL_TODAY);
+$("#d-type").addEventListener("change",e=>{ $("#d-phi-wrap").style.visibility=e.target.value==="Phun thuốc BVTV"?"visible":"hidden"; });
+$("#d-form").addEventListener("submit",e=>{
+  e.preventDefault(); const note=$("#d-note").value.trim(); if(!note){ toast("Ghi nội dung công việc trước đã"); $("#d-note").focus(); return; }
+  const type=$("#d-type").value, en={id:"e"+Date.now(),d:$("#d-date").value||iso(REAL_TODAY),type,note,qty:$("#d-qty").value.trim()};
+  if(type==="Phun thuốc BVTV"&&+$("#d-phi").value>0) en.phi=+$("#d-phi").value;
+  DIARY.push(en); $("#d-note").value=""; $("#d-qty").value=""; $("#d-phi").value="";
+  renderDiary(); renderToday(); eudr(); if(CUR.persona==="own"){ saveLocal(); queueRemoteSave(); } toast("Đã ghi vào nhật ký"+(CUR.persona==="own"?"":" (hộ mẫu, không lưu)"));
+});
+
+/* ================= BÁC SĨ CÂY (AI) ================= */
+let SAMPLE=null, imgBlob=null, thumbURL="";
+async function shrink(file,max,q){ const bmp=await createImageBitmap(file); const s=Math.min(1,max/Math.max(bmp.width,bmp.height)); const c=document.createElement("canvas"); c.width=Math.round(bmp.width*s); c.height=Math.round(bmp.height*s); c.getContext("2d").drawImage(bmp,0,0,c.width,c.height); return {blob:await new Promise(r=>c.toBlob(r,"image/jpeg",q)),url:c.toDataURL("image/jpeg",q)}; }
+$("#photo").addEventListener("change",async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{ const big=await shrink(f,1280,.85), th=await shrink(f,220,.6); imgBlob=big.blob; thumbURL=th.url;
+    $("#drop").innerHTML='<img alt="Ảnh vừa chọn" src="'+big.url+'"><span class="tiny muted">Chạm để đổi ảnh</span>';
+    $("#diag-btn").disabled=!SAMPLE; $("#diag-status").textContent=SAMPLE?"":"Chẩn đoán AI chưa sẵn sàng ở chế độ xem này. Dùng phần chẩn đoán theo dấu hiệu bên dưới.";
+    $("#diag-result").style.display="none";
+  }catch(err){ $("#diag-status").textContent="Không đọc được ảnh này. Thử chụp lại hoặc chọn ảnh JPG, PNG."; }
+});
+function ctxText(){ const f=CUR; return "Vườn: giống "+f.variety+", độ cao "+f.elev+" m, địa hình "+({doc:"sườn dốc",trung:"thung lũng/chỗ trũng",dinh:"đỉnh đồi"}[f.terrain]||"")+", "+cname(f.cid)+", tỉnh Sơn La. Thời điểm: "+MONTHS[scnToday().getMonth()].toLowerCase()+" "+scnToday().getFullYear()+". Cảnh báo hiện tại: "+(ALERTS.list.length?ALERTS.list.map(a=>a.title).join("; "):"không có")+"."; }
+const SCHEMA_HINT='{"la_cay_ca_phe":true,"van_de":"tên tiếng Việt","ten_khoa_hoc":"","do_tin_cay":"cao|trung bình|thấp","muc_do":"nhẹ|trung bình|nặng","dau_hieu_thay_trong_anh":["..."],"nguyen_nhan":"...","xu_ly_ngay":["..."],"phong_ngua":["..."],"can_chuyen_gia":false,"ly_do":"...","cau_hoi_them":["..."],"kha_nang_khac":["..."]}';
+$("#diag-btn").addEventListener("click",async()=>{
+  if(!SAMPLE||!imgBlob) return; const btn=$("#diag-btn"); btn.disabled=true; $("#diag-status").innerHTML='<span class="spin"></span> Đang xem ảnh…';
+  const prompt="Bạn là chuyên gia bảo vệ thực vật cho cây cà phê chè (Arabica) vùng Tây Bắc Việt Nam (Sơn La, Điện Biên). Hãy phân tích ảnh nông dân gửi.\n"+ctxText()+"\nNông dân mô tả: "+($("#photo-note").value.trim()||"(không có)")+"\n\nQuy tắc: viết tiếng Việt đơn giản, câu ngắn. Ưu tiên quản lý dịch hại tổng hợp: biện pháp canh tác, sinh học trước. Nếu cần thuốc hoá học chỉ nêu nhóm hoạt chất có trong Danh mục thuốc BVTV được phép sử dụng tại Việt Nam, nhắc dùng theo nhãn và đảm bảo thời gian cách ly; không nêu liều lượng. Không đoán bừa: nếu ảnh mờ, không phải cây cà phê hoặc chưa đủ dữ kiện thì để do_tin_cay thấp và đặt 1-3 câu hỏi thêm. Đặt can_chuyen_gia=true khi tin cậy thấp, bệnh nặng, lây lan rộng hoặc nghi bệnh lạ. Mỗi danh sách tối đa 4 ý.\nChỉ trả về một đối tượng JSON đúng dạng: "+SCHEMA_HINT;
+  try{ const r=await SAMPLE.json(prompt,{images:[imgBlob],modelTier:"default"}); renderDiag(r); $("#diag-status").textContent=""; }
+  catch(err){ $("#diag-status").textContent=err&&err.code==="rate_limited"?"Đang có nhiều yêu cầu, thử lại sau ít phút.":err&&err.code==="not_granted"?"Chẩn đoán AI đã bị tắt. Dùng chẩn đoán theo dấu hiệu bên dưới.":"Chưa chẩn đoán được. Thử ảnh khác, rõ hơn."; }
+  btn.disabled=false;
+});
+function li(a){ return (Array.isArray(a)?a:[]).filter(Boolean).slice(0,5).map(x=>"<li>"+esc(x)+"</li>").join(""); }
+function renderDiag(r){
+  const el=$("#diag-result"); el.style.display="";
+  const conf=String(r.do_tin_cay||"thấp"), cc=conf.startsWith("cao")?"var(--ok)":conf.startsWith("trung")?"var(--warn)":"var(--crit)";
+  if(r.la_cay_ca_phe===false){ el.innerHTML='<h3>Ảnh chưa giống cây cà phê</h3><div class="small">Chụp lại gần lá, quả hoặc cành cà phê bị bệnh, đủ sáng.</div>'; return; }
+  const sec=(t,html,col)=>html?'<h4 class="small" style="margin:10px 0 0;color:'+(col||"var(--leaf)")+'">'+t+'</h4>'+html:"";
+  el.innerHTML='<div class="row" style="justify-content:space-between"><span class="tag">Chẩn đoán sơ bộ của AI</span><span class="conf" style="color:'+cc+'">Tin cậy '+esc(conf)+'</span></div><h3 style="margin-top:6px">'+esc(r.van_de||"Chưa xác định")+'</h3>'+(r.ten_khoa_hoc?'<div class="small muted" style="font-style:italic">'+esc(r.ten_khoa_hoc)+'</div>':"")+(r.muc_do?'<div class="small" style="margin-top:4px">Mức độ: <b>'+esc(r.muc_do)+'</b></div>':"")+
+   sec("Thấy trong ảnh",li(r.dau_hieu_thay_trong_anh)?'<ul class="small">'+li(r.dau_hieu_thay_trong_anh)+'</ul>':"")+sec("Nguyên nhân",r.nguyen_nhan?'<div class="small">'+esc(r.nguyen_nhan)+'</div>':"")+sec("Làm ngay",li(r.xu_ly_ngay)?'<ul class="small">'+li(r.xu_ly_ngay)+'</ul>':"")+sec("Phòng lần sau",li(r.phong_ngua)?'<ul class="small">'+li(r.phong_ngua)+'</ul>':"")+sec("Cần biết thêm để chắc hơn",li(r.cau_hoi_them)?'<ul class="small">'+li(r.cau_hoi_them)+'</ul><div class="tiny muted">Ghi câu trả lời vào ô mô tả rồi chẩn đoán lại.</div>':"","var(--warn)")+
+   (li(r.kha_nang_khac)?'<div class="tiny muted" style="margin-top:8px">Khả năng khác: '+(r.kha_nang_khac||[]).slice(0,3).map(esc).join(", ")+'</div>':"")+
+   '<div class="row" style="margin-top:12px"><button class="btn'+(r.can_chuyen_gia?" primary":"")+'" id="to-expert">Gửi cán bộ xác nhận</button>'+(r.can_chuyen_gia?'<span class="tiny" style="color:var(--high)">'+esc(r.ly_do||"Nên có cán bộ xem")+'</span>':"")+'</div>';
+  $("#to-expert").onclick=()=>postQuestion("[Ảnh từ Bác sĩ cây] "+($("#photo-note").value.trim()||"Nhờ cán bộ xem giúp."),{thumb:thumbURL,ai:(r.van_de||"")+" (tin cậy "+conf+")"});
+}
+
+/* ================= TRỢ LÝ ================= */
+let CHAT=[], chatBusy=false;
+function renderChat(){ const box=$("#msgs"); if(!CHAT.length){ box.innerHTML='<div class="msg a">Chào '+esc(CUR.owner||"bà con")+'. Hỏi tôi về chăm sóc, sâu bệnh, thu hái, sơ chế cà phê chè. Tôi biết vườn ở '+esc(cname(CUR.cid))+', cao '+esc(CUR.elev)+' m.</div>'; return; } box.innerHTML=CHAT.map(m=>'<div class="msg '+(m.role==="user"?"u":"a")+'">'+esc(m.content)+'</div>').join(""); }
+async function ask(text){
+  if(!text.trim()||chatBusy) return;
+  if(!SAMPLE){ $("#chat-note").textContent="Trợ lý AI chưa sẵn sàng ở chế độ xem này. Hãy gửi câu hỏi cho cán bộ bên dưới."; return; }
+  chatBusy=true; $("#chat-send").disabled=true; CHAT.push({role:"user",content:text.trim()}); const bot={role:"assistant",content:"…"}; CHAT.push(bot); renderChat();
+  const sys="Bạn là trợ lý khuyến nông cho người trồng cà phê chè (Arabica) ở Sơn La, Việt Nam. Trả lời bằng tiếng Việt đơn giản, câu ngắn, dễ hiểu với bà con dân tộc thiểu số; không dùng markdown, không dùng ký hiệu *, #; tối đa 150 từ; đưa các bước cụ thể đánh số 1, 2, 3. Nếu cần thuốc BVTV chỉ nêu nhóm hoạt chất trong Danh mục được phép tại Việt Nam, nhắc đọc nhãn và thời gian cách ly, không nêu liều. Nếu không chắc chắn, nói rõ và khuyên gửi câu hỏi kèm ảnh cho cán bộ khuyến nông trong mục Hỏi cán bộ.\n"+ctxText();
+  const msgs=CHAT.slice(0,-1).map((m,i)=>({role:m.role,content:i===0?sys+"\n\nCâu hỏi: "+m.content:m.content}));
+  try{ const r=await SAMPLE(msgs,{cache:false,modelTier:"default",onText:({text})=>{ bot.content=text||"…"; const last=$("#msgs").lastElementChild; if(last) last.textContent=bot.content; }}); bot.content=r.text||bot.content; }
+  catch(err){ bot.content=err&&err.code==="rate_limited"?"Đang quá tải, bà con thử lại sau ít phút.":"Chưa trả lời được. Bà con thử lại hoặc gửi câu hỏi cho cán bộ."; }
+  renderChat(); chatBusy=false; $("#chat-send").disabled=false;
+}
+$("#chat-form").addEventListener("submit",e=>{ e.preventDefault(); const v=$("#chat-in").value; $("#chat-in").value=""; ask(v); });
+$("#sugg").addEventListener("click",e=>{ const b=e.target.closest(".chip"); if(b) ask(b.textContent); });
+let DICT=null, dictOn=false;
+$("#mic").addEventListener("click",()=>{ if(!DICT) return; if(dictOn){ DICT.stop().catch(()=>{}); return; } DICT.start().catch(err=>{ if(err&&err.code==="not_granted") $("#mic").style.display="none"; }); });
+
+/* ================= DỮ LIỆU DÙNG CHUNG ================= */
+let DB=null, UID=null, isExpert=false, QDOCS=[], PDOCS=[], BDOCS=[];
+async function postQuestion(text,extra={}){
+  text=String(text||"").trim(); if(text.length<8){ toast("Mô tả rõ hơn một chút để cán bộ hiểu"); return; }
+  if(!DB){ toast("Cần đăng nhập để gửi câu hỏi"); return; }
+  const body={text:text.slice(0,1200),cid:CUR.cid,xa:cname(CUR.cid),elev:+CUR.elev||null,variety:CUR.variety,ts:Date.now(),by:UID||"",answers:[]};
+  if(extra.ai) body.ai=String(extra.ai).slice(0,200); if(extra.thumb&&extra.thumb.length<60000) body.thumb=extra.thumb;
+  try{ await DB.collection("questions").add(body); toast("Đã gửi câu hỏi"); show("ask"); $("#q-text").value=""; }catch(err){ toast(err&&err.code==="quota_exceeded"?"Kho câu hỏi đã đầy":"Chưa gửi được. Có thể bạn chưa có quyền gửi."); }
+}
+$("#q-form").addEventListener("submit",e=>{ e.preventDefault(); postQuestion($("#q-text").value); });
+function renderQuestions(){
+  const list=$("#q-list"); $("#q-count").textContent=QDOCS.length?QDOCS.length+" câu":"";
+  if(!QDOCS.length){ list.innerHTML='<div class="small muted">Chưa có câu hỏi nào.</div>'; return; }
+  list.innerHTML=QDOCS.slice(0,25).map(s=>{ const q=s.data(), ans=Array.isArray(q.answers)?q.answers:[];
+    return '<div class="q">'+(q.thumb&&/^data:image\/jpeg;base64,/.test(q.thumb)?'<img alt="Ảnh kèm câu hỏi" src="'+q.thumb+'">':"")+'<div class="meta">'+(q.example?'<span class="tag ex">Mẫu</span> ':"")+esc(q.xa||"")+(q.elev?" · "+esc(q.elev)+" m":"")+(q.variety?" · "+esc(q.variety):"")+(q.ts?" · "+esc(new Date(q.ts).toLocaleDateString("vi-VN")):"")+'</div><div style="margin-top:2px">'+esc(q.text)+'</div>'+(q.ai?'<div class="tiny muted">AI nghĩ là: '+esc(q.ai)+'</div>':"")+ans.map(a=>'<div class="ans">'+(a.expert?"<b>"+esc(a.name||"Cán bộ khuyến nông")+":</b> ":"<b>Bà con:</b> ")+esc(a.text)+'</div>').join("")+'<form class="composer" data-q="'+esc(s.id)+'" style="margin-top:6px;clear:both"><input class="inp" placeholder="'+(isExpert?"Trả lời với tư cách cán bộ":"Góp ý, chia sẻ kinh nghiệm")+'" aria-label="Trả lời"><button class="btn">Trả lời</button></form></div>'; }).join("");
+}
+$("#q-list").addEventListener("submit",async e=>{ e.preventDefault(); const f=e.target.closest("form[data-q]"); if(!f||!DB) return; const inp=f.querySelector("input"), t=inp.value.trim(); if(!t) return; const snap=QDOCS.find(s=>s.id===f.dataset.q); if(!snap) return; const ans=(snap.data().answers||[]).slice(); ans.push({text:t.slice(0,1200),expert:isExpert,by:UID||"",ts:Date.now()}); f.querySelector("button").disabled=true; try{ await DB.doc("questions/"+snap.id).update({answers:ans}); inp.value=""; }catch(err){ toast("Chưa gửi được câu trả lời"); } f.querySelector("button").disabled=false; });
+function priceRows(days=7){ const wk=Date.now()-days*86400000; return PDOCS.map(s=>s.data()).filter(p=>p.ts>=wk&&+p.gia>0); }
+const median=v=>{ const s=v.slice().sort((a,b)=>a-b); return s.length? s[Math.floor(s.length/2)]:0; };
+function renderPrices(){
+  const box=$("#price-sum"); if(!DB){ box.innerHTML='<div class="small muted">Đăng nhập để xem và báo giá cùng bà con.</div>'; return; }
+  const rows=priceRows(); if(!rows.length){ box.innerHTML='<div class="small muted">Tuần này chưa ai báo giá.</div>'; return; }
+  const by={}; rows.forEach(p=>(by[p.loai]=by[p.loai]||[]).push(p));
+  const mine=rows.filter(p=>p.cid===CUR.cid&&p.loai==="Quả tươi").map(p=>+p.gia);
+  box.innerHTML=Object.entries(by).map(([k,arr])=>{ const v=arr.map(p=>+p.gia).sort((a,b)=>a-b); return '<div class="row" style="justify-content:space-between"><span><b>'+esc(k)+'</b><br><span class="tiny muted">'+v.length+' lượt báo toàn tỉnh</span></span><span style="text-align:right"><b class="num" style="font-size:17px">'+median(v).toLocaleString("vi-VN")+'</b> <span class="tiny muted">đ/kg</span><br><span class="tiny muted num">'+v[0].toLocaleString("vi-VN")+' – '+v[v.length-1].toLocaleString("vi-VN")+'</span></span></div>'; }).join("")+(mine.length?'<div class="tiny muted">Ở '+esc(cname(CUR.cid))+': giữa '+median(mine).toLocaleString("vi-VN")+' đ/kg ('+mine.length+' lượt)</div>':"");
+}
+$("#price-form").addEventListener("submit",async e=>{ e.preventDefault(); const g=Math.round(+$("#p-gia").value); if(!(g>=1000&&g<=500000)){ toast("Giá phải từ 1.000 đến 500.000 đồng/kg"); return; } if(!DB){ toast("Cần đăng nhập để báo giá"); return; } $("#p-btn").disabled=true; try{ await DB.collection("prices").add({loai:$("#p-loai").value,gia:g,cid:CUR.cid,xa:cname(CUR.cid),ts:Date.now(),by:UID||""}); $("#p-gia").value=""; toast("Cảm ơn bà con đã báo giá"); }catch(err){ toast("Chưa gửi được giá"); } $("#p-btn").disabled=false; });
+function renderBroadcastForFarmer(){
+  const el=$("#bcast"); const b=BDOCS.map(s=>s.data()).filter(x=>(x.scenario||"real")===S.scenario && (x.all||(x.cids||[]).includes(CUR.cid))).sort((a,b)=>b.ts-a.ts)[0];
+  if(!b){ el.style.display="none"; return; }
+  el.style.display=""; el.innerHTML='<div class="lvl">Thông báo của cán bộ khuyến nông tỉnh</div><h3>'+esc(b.title)+'</h3><div class="small" style="white-space:pre-line">'+esc(b.body)+'</div><div class="tiny muted" style="margin-top:6px">'+esc(new Date(b.ts).toLocaleString("vi-VN"))+(b.example?" · thông báo mẫu":"")+'</div>';
+}
+
+/* hồ sơ tự nhập: đồng bộ */
+let farmRef=null, saving=false, pending=false, saveTimer=null;
+function queueRemoteSave(){ if(!farmRef) return; clearTimeout(saveTimer); $("#save-state").textContent="đang lưu…"; saveTimer=setTimeout(doSave,1200); }
+async function doSave(){ if(!farmRef) return; if(saving){ pending=true; return; } saving=true; try{ await farmRef.set({own:OWN,diary:OWN_DIARY.slice(-300),updated:Date.now()}); $("#save-state").textContent="đã lưu"; }catch(err){ $("#save-state").textContent="lưu trên máy này"; } saving=false; if(pending){ pending=false; doSave(); } }
+
+/* ================= BẢNG ĐIỀU HÀNH TỈNH ================= */
+let STATS=null;
+function computeStats(){
+  const byC={}; COMMUNES.forEach(c=>byC[c.id]={c,n:0,ha:0,t:0,ready:0,high:0,tminGrid:Math.min(...window7(c.id).map(d=>d.tmin)),farms:[]});
+  const gapCount={}; let ready=0, high=0, ha=0;
+  for(const f of FARMS){
+    const s=byC[f.cid]; const g=eudrGaps(f); f._gaps=g; f._frost=frostWorst(f);
+    s.n++; s.ha+=f.area; s.t+=f.yieldT; ha+=f.area; if(!g.length){ s.ready++; ready++; } g.forEach(x=>gapCount[x]=(gapCount[x]||0)+1);
+    if(f._frost.lvl>=2){ s.high++; high++; } s.farms.push(f);
+  }
+  STATS={byC,gapCount,ready,high,ha};
+}
+function lvlOfCommune(s){ return s.high? (s.farms.some(f=>f._frost.lvl>=3)?3:2) : s.farms.some(f=>f._frost.lvl>=1)?1:0; }
+function renderProvince(){
+  computeStats();
+  $("#facts").innerHTML=PROVINCE_FACTS.map(x=>'<div class="tile"><div class="v num">'+esc(x.v)+'</div><div class="k">'+esc(x.k)+'</div><div class="s">'+esc(x.src)+'</div></div>').join("");
+  const unanswered=QDOCS.filter(s=>!(s.data().answers||[]).some(a=>a.expert)).length;
+  const dl=Math.ceil((new Date(2026,11,30)-REAL_TODAY)/86400000);
+  const hl=STATS.high?2:0;
+  $("#kpis").innerHTML=[
+    ['<span class="num">'+FARMS.length+'</span> hộ · <span class="num">'+STATS.ha.toFixed(0)+'</span> ha',"Hộ trong sổ đăng ký demo","15 xã, phường trồng cà phê chính",""],
+    ['<span class="num">'+Math.round(STATS.ready/FARMS.length*100)+'%</span>',"Hộ đủ hồ sơ EUDR",STATS.ready+" hộ · hạn 30/12/2026, còn "+dl+" ngày","l1"],
+    ['<span class="num">'+STATS.high+'</span> hộ',"Nguy cơ sương muối cao trong 7 ngày",(S.scenario==="jan25"?"Phát lại từ 10/1/2025":"Theo dự báo thật từ "+fmtD(scnToday())),"l"+(STATS.high?(FARMS.some(f=>f._frost.lvl>=3)?3:2):0)],
+    ['<span class="num">'+unanswered+'</span>',"Câu hỏi chờ cán bộ trả lời",QDOCS.length+" câu hỏi gần nhất",unanswered?"l1":""]
+  ].map(([v,k,s,c])=>'<div class="tile '+c+'"><div class="v">'+v+'</div><div class="k">'+k+'</div><div class="s">'+esc(s)+'</div></div>').join("");
+  // bảng xã
+  const rows=Object.values(STATS.byC).sort((a,b)=>b.high-a.high||a.tminGrid-b.tminGrid);
+  $("#ctable").innerHTML='<thead><tr><th>Xã, phường</th><th>Hộ</th><th>Diện tích (ha)</th><th>Sản lượng dự kiến (tấn quả)</th><th>Đủ hồ sơ EUDR</th><th>Tmin lưới 7 ngày</th><th>Hộ nguy cơ cao</th></tr></thead><tbody>'+rows.map(s=>{ const l=lvlOfCommune(s); return '<tr data-c="'+s.c.id+'"'+(S.selC===s.c.id?' class="sel"':"")+'><td><b>'+esc(s.c.kind+" "+s.c.name)+'</b><br><span class="tiny muted">gồm '+esc(s.c.from)+'</span></td><td>'+s.n+'</td><td>'+s.ha.toFixed(1)+'</td><td>'+s.t.toFixed(0)+'</td><td>'+Math.round(s.ready/s.n*100)+'%</td><td>'+s.tminGrid.toFixed(1)+' °C</td><td><span class="pill l'+l+'">'+(s.high?s.high+" hộ":LV[l])+'</span></td></tr>'; }).join("")+'</tbody>';
+  // khoảng trống EUDR
+  const gc=Object.entries(STATS.gapCount).sort((a,b)=>b[1]-a[1]);
+  $("#gap-sub").textContent=(FARMS.length-STATS.ready)+" hộ";
+  $("#gaps").innerHTML=gc.map(([k,v])=>'<div class="gap-row"><span>'+esc(k)+'</span><b class="num">'+v+' hộ</b></div>').join("");
+  renderBroadcastDraft(); renderQueue(); renderProvincePrices(); drawMap(); renderLegend();
+  $("#map-sub").textContent=FARMS.length+" hộ · "+(S.scenario==="jan25"?"phát lại 10–16/1/2025":"dự báo "+fmtD(scnToday())+"–"+fmtD(addDays(scnToday(),6)));
+}
+$("#ctable").addEventListener("click",e=>{ const tr=e.target.closest("tr[data-c]"); if(!tr) return; S.selC = S.selC===tr.dataset.c?null:tr.dataset.c; renderProvince(); showCommuneDetail(S.selC); });
+function showCommuneDetail(cid){
+  const el=$("#farm-detail"); if(!cid){ el.innerHTML='<span class="muted small">Chạm vào một chấm trên bản đồ hoặc một dòng trong bảng để xem chi tiết.</span>'; return; }
+  const s=STATS.byC[cid], worst=s.farms.slice().sort((a,b)=>a._frost.t-b._frost.t).slice(0,3);
+  el.innerHTML='<b>'+esc(cname(cid))+'</b> · '+s.n+' hộ, '+s.ha.toFixed(1)+' ha. Vườn lạnh nhất: '+worst.map(f=>esc(f.owner)+' ('+f.elev+' m, '+({doc:"sườn dốc",trung:"chỗ trũng",dinh:"đỉnh đồi"}[f.terrain])+', mặt lá ước '+f._frost.t.toFixed(1)+' °C)').join("; ")+'.';
+}
+function renderBroadcastDraft(){
+  const risky=Object.values(STATS.byC).filter(s=>s.high>0).sort((a,b)=>b.high-a.high);
+  const n=risky.reduce((x,s)=>x+s.n,0);
+  let title, body, cids, all=false;
+  if(risky.length){
+    const first=FARMS.filter(f=>f._frost.lvl>=2).map(f=>f._frost.day.d).sort((a,b)=>a-b)[0];
+    title="Cảnh báo sương muối đêm "+DOW[first.getDay()]+" "+fmtD(first);
+    const top=risky.slice(0,6).map(s=>s.c.name+" ("+s.high+" hộ)"), more=risky.length-6;
+    body="Nhiều hộ nguy cơ nhất: "+top.join(", ")+(more>0?" và "+more+" xã, phường khác":"")+". Vườn ở chỗ trũng, độ cao trên 800 m có nguy cơ cao.\nTrước 17 giờ: tủ gốc, che cây non. Sáng sớm: phun nước rửa sương trước khi nắng lên. Chưa cắt cành cháy khi trời còn rét.";
+    cids=risky.map(s=>s.c.id);
+  } else {
+    title="Khuyến cáo trong tuần: hái sạch, phòng mọt đục quả"; all=true; cids=[];
+    body="Thời tiết 7 ngày tới chưa có nguy cơ sương muối. Bà con hái quả chín trên 90%, nhặt quả rụng, quả sót sau mỗi lứa hái, sơ chế trong ngày, không xả nước thải ra suối.";
+  }
+  const recip = all? FARMS.length : n;
+  $("#bc-draft").innerHTML='<div class="tiny muted">Bản nháp tự động từ mô hình nguy cơ, gửi tới '+recip+' hộ'+(all?" toàn tỉnh":" ở "+risky.length+" xã, phường")+'.</div><div style="margin-top:4px"><b>'+esc(title)+'</b></div><div style="white-space:pre-line">'+esc(body)+'</div>';
+  $("#bc-send").onclick=async()=>{ if(!DB){ toast("Cần đăng nhập để gửi"); return; } $("#bc-send").disabled=true; try{ await DB.collection("broadcasts").add({title,body,cids,all,scenario:S.scenario,ts:Date.now(),by:UID||"",recipients:recip}); toast("Đã gửi tới "+recip+" hộ (demo). Xem ở trang Hôm nay của hộ trong vùng."); }catch(err){ toast("Chưa gửi được. Bạn cần quyền biên tập."); } $("#bc-send").disabled=false; };
+  const sent=BDOCS.map(s=>s.data()).sort((a,b)=>b.ts-a.ts).slice(0,3);
+  $("#bc-list").innerHTML=sent.length?'<div class="tiny muted">Đã gửi gần đây</div>'+sent.map(b=>'<div class="gap-row"><span>'+esc(b.title)+(b.example?' <span class="tag ex">mẫu</span>':"")+'</span><span class="tiny muted num">'+esc(new Date(b.ts).toLocaleDateString("vi-VN"))+' · '+(b.recipients||"")+' hộ</span></div>').join(""):"";
+}
+function renderQueue(){
+  const un=QDOCS.filter(s=>!(s.data().answers||[]).some(a=>a.expert));
+  $("#qq-sub").textContent=un.length+" câu";
+  $("#qq").innerHTML=un.length?un.slice(0,4).map(s=>{ const q=s.data(); return '<div class="gap-row"><span>'+esc(q.text.length>90?q.text.slice(0,90)+"…":q.text)+'<br><span class="tiny muted">'+esc(q.xa||"")+(q.ts?" · "+new Date(q.ts).toLocaleDateString("vi-VN"):"")+'</span></span></div>'; }).join("")+'<div class="tiny muted">Cán bộ trả lời ngay trong mục Hỏi đáp của ứng dụng.</div>':'<div class="small muted">'+(DB?"Đã trả lời hết.":"Đăng nhập để xem.")+'</div>';
+}
+function renderProvincePrices(){
+  const rows=priceRows().filter(p=>p.loai==="Quả tươi"); const el=$("#pp");
+  if(!rows.length){ el.innerHTML='<div class="small muted">'+(DB?"Chưa có báo giá tuần này.":"Đăng nhập để xem.")+'</div>'; return; }
+  const by={}; rows.forEach(p=>(by[p.cid||"?"]=by[p.cid||"?"]||[]).push(+p.gia));
+  el.innerHTML='<div class="row" style="justify-content:space-between"><span class="small">Giữa toàn tỉnh</span><b class="num">'+median(rows.map(p=>+p.gia)).toLocaleString("vi-VN")+' đ/kg</b></div>'+Object.entries(by).sort((a,b)=>median(b[1])-median(a[1])).map(([cid,v])=>'<div class="gap-row"><span>'+esc(cname(cid))+' <span class="tiny muted">('+v.length+')</span></span><span class="num">'+median(v).toLocaleString("vi-VN")+'</span></div>').join("");
+}
+/* bản đồ */
+let MAPPTS=[];
+function renderLegend(){
+  const L={frost:[["l0","Thấp"],["l1","Theo dõi"],["l2","Cao"],["l3","Rất cao"]],eudr:[["l0","Đủ hồ sơ"],["l1","Thiếu giấy tờ, toạ độ"],["l3","Nghi đất rừng"]],cert:[["l0","4C, RA, hữu cơ"],["l1","Chưa chứng nhận"]]}[S.layer];
+  $("#legend").innerHTML=L.map(([c,t])=>'<span class="'+c+'"><i style="background:var(--lvl)"></i>'+t+'</span>').join("")+'<span>Cỡ chấm theo diện tích</span>';
+}
+function farmColorLvl(f){ if(S.layer==="frost") return f._frost.lvl; if(S.layer==="eudr") return f.forest==="nghi"?3:f._gaps.length?1:0; return f.cert?0:1; }
+function drawMap(){
+  const cv=$("#map"); if(!cv||!STATS) return; const rect=cv.getBoundingClientRect(); if(!rect.width) return;
+  const dpr=window.devicePixelRatio||1; cv.width=Math.round(rect.width*dpr); cv.height=Math.round(rect.height*dpr);
+  const ctx=cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); const W=rect.width, H=rect.height; ctx.clearRect(0,0,W,H);
+  const cs=getComputedStyle(document.documentElement), col=n=>cs.getPropertyValue(n).trim();
+  const lats=COMMUNES.map(c=>c.lat), lngs=COMMUNES.map(c=>c.lng); const la0=Math.min(...lats)-.06, la1=Math.max(...lats)+.06, lo0=Math.min(...lngs)-.07, lo1=Math.max(...lngs)+.07;
+  const k=Math.cos(21.2*Math.PI/180), sx=(W-40)/((lo1-lo0)*k), sy=(H-40)/(la1-la0), s=Math.min(sx,sy);
+  const ox=(W-(lo1-lo0)*k*s)/2, oy=(H-(la1-la0)*s)/2;
+  const P=(lat,lng)=>[ox+(lng-lo0)*k*s, H-oy-(lat-la0)*s];
+  ctx.strokeStyle=col("--line"); ctx.lineWidth=1; ctx.fillStyle=col("--muted"); ctx.font="10px "+col("--font");
+  for(let la=Math.ceil(la0*10)/10; la<=la1; la+=.1){ const [x0,y]=P(la,lo0), [x1]=P(la,lo1); ctx.beginPath(); ctx.moveTo(x0,y); ctx.lineTo(x1,y); ctx.stroke(); ctx.fillText(la.toFixed(1)+"°B",4,y-2); }
+  for(let lo=Math.ceil(lo0*10)/10; lo<=lo1; lo+=.1){ const [x,y0]=P(la0,lo), [,y1]=P(la1,lo); ctx.beginPath(); ctx.moveTo(x,y0); ctx.lineTo(x,y1); ctx.stroke(); ctx.fillText(lo.toFixed(1)+"°Đ",x+2,H-4); }
+  MAPPTS=[];
+  const lv=["--ok","--warn","--high","--crit"];
+  for(const f of FARMS){
+    const [x,y]=P(f.lat,f.lng), r=2.5+Math.sqrt(f.area)*2.2, l=farmColorLvl(f), dim=S.selC&&S.selC!==f.cid;
+    ctx.globalAlpha=dim?.15:.85; ctx.fillStyle=col(lv[l]); ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fill();
+    if(S.selFarm===f){ ctx.globalAlpha=1; ctx.strokeStyle=col("--ink"); ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(x,y,r+3,0,7); ctx.stroke(); }
+    MAPPTS.push({x,y,r,f});
+  }
+  ctx.globalAlpha=1; ctx.font="600 12px "+col("--font"); ctx.textAlign="center";
+  const LAB={chiengcoi:[30,-14,"left"],chiengan:[-34,-6,"right"],chiengsinh:[36,8,"left"],chiengmung:[-36,-8,"right"],chiengsung:[34,-10,"left"],maison:[0,28,"center"],yenchau:[0,26,"center"],chiengmai:[-34,0,"right"],muongchanh:[0,40,"center"],muoinoi:[0,-28,"center"],thuanchau:[-30,4,"right"],binhthuan:[0,-28,"center"],namlau:[-34,4,"right"]};
+  for(const c of COMMUNES){ const [x,y]=P(c.lat,c.lng), o=LAB[c.id]||[0,-28,"center"]; ctx.textAlign=o[2]; const t=c.name; ctx.lineWidth=4; ctx.strokeStyle=col("--bg"); ctx.strokeText(t,x+o[0],y+o[1]); ctx.fillStyle=col("--ink"); ctx.fillText(t,x+o[0],y+o[1]); }
+  ctx.textAlign="left";
+}
+$("#map").addEventListener("click",e=>{
+  const r=e.target.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top; let best=null, bd=14;
+  for(const p of MAPPTS){ const d=Math.hypot(p.x-x,p.y-y)-p.r; if(d<bd){ bd=d; best=p; } }
+  if(!best){ S.selFarm=null; drawMap(); return; }
+  S.selFarm=best.f; drawMap(); const f=best.f;
+  $("#farm-detail").innerHTML='<b>'+esc(f.owner)+'</b> <span class="muted">· '+esc(f.id)+(f.persona?' · hộ mẫu trong app':"")+'</span><dl><dt>Địa chỉ</dt><dd>'+esc(f.ban)+', '+esc(cname(f.cid))+'</dd><dt>Vườn</dt><dd>'+f.area+' ha · '+f.elev+' m · '+({doc:"sườn dốc",trung:"chỗ trũng",dinh:"đỉnh đồi"}[f.terrain])+' · '+esc(f.variety)+' trồng '+f.planted+'</dd><dt>Sản lượng dự kiến</dt><dd>'+f.yieldT+' tấn quả tươi</dd><dt>Tổ chức</dt><dd>'+esc(f.htx||"Chưa vào HTX")+(f.cert?" · "+esc(f.cert):"")+'</dd><dt>Sương muối 7 ngày</dt><dd><span class="pill l'+f._frost.lvl+'">'+LV[f._frost.lvl]+'</span> mặt lá thấp nhất ước '+f._frost.t.toFixed(1)+' °C</dd><dt>EUDR</dt><dd>'+(f._gaps.length?esc(f._gaps.join("; ")):"Đủ hồ sơ")+'</dd></dl>'+(f.persona?'<button class="btn" style="margin-top:8px" id="open-p">Mở app với hộ này</button>':"");
+  const b=$("#open-p"); if(b) b.onclick=()=>{ $("#persona").value=f.persona; setPersona(f.persona); document.body.classList.remove("show-side"); };
+});
+$("#layers").addEventListener("click",e=>{ const b=e.target.closest("[data-l]"); if(!b) return; S.layer=b.dataset.l; document.querySelectorAll("#layers .chip").forEach(c=>c.setAttribute("aria-pressed",c===b)); drawMap(); renderLegend(); });
+$("#seg").addEventListener("click",e=>{ const b=e.target.closest("[data-p]"); if(!b) return; document.querySelectorAll("#seg button").forEach(x=>x.setAttribute("aria-pressed",x===b)); document.querySelectorAll(".pane").forEach(p=>p.classList.toggle("on",p.id==="p-"+b.dataset.p)); if(b.dataset.p==="ops") drawMap(); });
+window.addEventListener("resize",()=>{ clearTimeout(drawMap._t); drawMap._t=setTimeout(drawMap,150); });
+async function copyText(t,msg){ try{ await navigator.clipboard.writeText(t); toast(msg); }catch(e){ toast("Trình duyệt chặn sao chép"); } }
+$("#copy-gaps").onclick=()=>{ const rows=[["ma_ho","chu_ho","xa_phuong","ban","dien_tich_ha","htx","con_thieu"]].concat(FARMS.filter(f=>f._gaps.length).map(f=>[f.id,f.owner,cname(f.cid),f.ban,f.area,f.htx,f._gaps.join("; ")])); copyText(rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\n"),"Đã sao chép "+(rows.length-1)+" hộ (CSV)"); };
+$("#copy-geo").onclick=()=>{ const fc={type:"FeatureCollection",features:FARMS.filter(f=>!f._gaps.length).map(f=>({type:"Feature",properties:{ProducerName:f.owner,ProducerCountry:"VN",ProductionPlace:f.id,Area:f.area,msvt:f.msvt,commune:cname(f.cid)},geometry:f.coords.length>=3?{type:"Polygon",coordinates:[[...f.coords,f.coords[0]].map(p=>[+p[1].toFixed(6),+p[0].toFixed(6)])]}:{type:"Point",coordinates:[+f.coords[0][1].toFixed(6),+f.coords[0][0].toFixed(6)]}}))}; copyText(JSON.stringify(fc),"Đã sao chép GeoJSON "+fc.features.length+" hộ"); };
+
+/* ================= KHỞI ĐỘNG ================= */
+$("#persona").innerHTML=PERSONAS.map(p=>'<option value="'+p.key+'">'+esc(p.owner+" · "+cname(p.cid)+" · "+p.elev+" m")+'</option>').join("")+'<option value="own">Hồ sơ tự nhập (vườn của tôi)</option>';
+function renderAll(){ $("#persona").value=S.persona; fillFarm(); renderToday(); renderDiary(); eudr(); renderChat(); renderQuestions(); renderPrices(); drawPlot(); }
+updateScnLabel();
+setPersona(S.persona);
+renderLib(); renderProvince();
+$("#save-state").textContent="";
+
+function subscribeAll(db){
+  const qt=setTimeout(()=>{ $("#q-note").textContent="Chưa tải được câu hỏi, có thể do mạng yếu."; },10000);
+  db.collection("questions").orderBy("ts","desc").limit(60).onSnapshot(snap=>{ if(!snap.metadata.fromCache) clearTimeout(qt); QDOCS=snap.docs; renderQuestions(); renderQueue(); renderProvince(); },()=>clearTimeout(qt));
+  db.collection("prices").orderBy("ts","desc").limit(300).onSnapshot(snap=>{ PDOCS=snap.docs; renderPrices(); renderProvincePrices(); },()=>{});
+  db.collection("broadcasts").orderBy("ts","desc").limit(20).onSnapshot(snap=>{ BDOCS=snap.docs; renderBroadcastForFarmer(); renderBroadcastDraft(); },()=>{});
+}
+function wireDictation(d){ if(!d) return; DICT=d; $("#mic").style.display=""; d.onState(({state})=>{ dictOn=state==="listening"; $("#mic").setAttribute("aria-pressed",dictOn); }); d.onPartial(({text})=>{ $("#chat-in").placeholder=text||"Đang nghe…"; }); d.onFinal(({text})=>{ const i=$("#chat-in"); i.value=(i.value?i.value+" ":"")+text; i.placeholder="Hỏi về cây cà phê của bà con"; }); }
+
+/* ---------- Bản chạy độc lập (GitHub Pages, máy chủ riêng) ---------- */
+function makeLocalDB(seed){
+  const KEY="cptb2-localdb"; let st=null; try{ st=JSON.parse(localStorage.getItem(KEY)||"null"); }catch(e){}
+  if(!st) st={questions:{},prices:{},broadcasts:{}};
+  const shift=Math.max(0,Date.now()-SEED_ANCHOR);
+  const shifted={}; for(const c in seed){ shifted[c]={}; for(const id in seed[c]){ const d=JSON.parse(JSON.stringify(seed[c][id])); if(d.scenario!=="jan25"){ d.ts+=shift; (d.answers||[]).forEach(a=>a.ts+=shift); } shifted[c][id]=d; } }
+  const all=c=>({...shifted[c],...st[c]}), subs={questions:[],prices:[],broadcasts:[]};
+  const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(st)); }catch(e){} };
+  const snap=c=>{ const docs=Object.entries(all(c)).map(([id,d])=>({id,data:()=>d})).sort((a,b)=>(b.data().ts||0)-(a.data().ts||0)); return {docs,metadata:{fromCache:false}}; };
+  const emit=c=>subs[c].forEach(f=>f(snap(c)));
+  const coll=c=>({ orderBy(){ return coll(c); }, limit(){ return coll(c); }, onSnapshot(f){ subs[c].push(f); setTimeout(()=>f(snap(c)),0); return ()=>{}; }, add(d){ const id="l"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); st[c][id]=d; save(); emit(c); return Promise.resolve({id}); } });
+  return { local:true, collection:c=>coll(c), doc(path){ const [c,id]=path.split("/"); return { update(d){ st[c][id]={...all(c)[id],...d}; save(); emit(c); return Promise.resolve(); } }; } };
+}
+function makeBrowserTTS(){
+  if(!("speechSynthesis" in window)) return null;
+  return { speak(text,o={}){ return new Promise((res,rej)=>{ const vs=speechSynthesis.getVoices(), v=vs.find(x=>/^vi/i.test(x.lang)); if(!v){ toast("Máy này chưa có giọng đọc tiếng Việt"); rej({code:"no_voice"}); return; } speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.voice=v; u.lang=v.lang; u.rate=o.rate||1; u.onend=()=>res(); u.onerror=()=>rej({code:"error"}); speechSynthesis.speak(u); }); } };
+}
+function makeBrowserDictation(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return null;
+  let rec=null, cb={state:()=>{},partial:()=>{},final:()=>{}};
+  return { onState(f){cb.state=f;}, onPartial(f){cb.partial=f;}, onFinal(f){cb.final=f;},
+    start(){ return new Promise((res,rej)=>{ try{ rec=new SR(); rec.lang="vi-VN"; rec.interimResults=true; rec.continuous=false;
+      rec.onresult=e=>{ let interim=""; for(let i=e.resultIndex;i<e.results.length;i++){ const r=e.results[i]; if(r.isFinal) cb.final({text:r[0].transcript}); else interim+=r[0].transcript; } cb.partial({text:interim}); };
+      rec.onerror=e=>{ cb.state({state:"idle",reason:e.error}); if(e.error==="not-allowed") rej({code:"not_granted"}); };
+      rec.onend=()=>cb.state({state:"idle",reason:"stopped"}); rec.start(); cb.state({state:"listening"}); res(); }catch(err){ rej({code:"error"}); } }); },
+    stop(){ try{ rec&&rec.stop(); }catch(e){} return Promise.resolve(); } };
+}
+function blobToB64(b){ return new Promise(r=>{ const fr=new FileReader(); fr.onload=()=>r(String(fr.result).split(",")[1]); fr.readAsDataURL(b); }); }
+function makeRemoteSample(url){
+  const f=async(input,opts={})=>{
+    const body={messages:typeof input==="string"?[{role:"user",content:input}]:input};
+    if(opts.images&&opts.images.length) body.images=await Promise.all(opts.images.map(async b=>({media_type:b.type||"image/jpeg",data:await blobToB64(b)})));
+    let r; try{ r=await fetch(url,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)}); }catch(e){ throw {code:"unavailable"}; }
+    if(!r.ok) throw {code:r.status===429?"rate_limited":"error"};
+    const j=await r.json(); if(opts.onText) opts.onText({text:j.text||""}); return {text:j.text||"",truncated:false};
+  };
+  f.json=async(i,o)=>{ const r=await f(i,o); const m=r.text.match(/\{[\s\S]*\}/); return JSON.parse(m?m[0]:r.text); };
+  f.limits=async()=>({images:true});
+  return f;
+}
+async function loadLiveWeather(){
+  const lat=COMMUNES.map(c=>c.lat).join(","), lng=COMMUNES.map(c=>c.lng).join(",");
+  const url="https://api.open-meteo.com/v1/forecast?latitude="+lat+"&longitude="+lng+"&daily=temperature_2m_min,temperature_2m_max,precipitation_sum,relative_humidity_2m_mean,cloud_cover_mean,wind_speed_10m_max&timezone=Asia%2FBangkok&past_days=7&forecast_days=14";
+  const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),12000);
+  try{
+    const r=await fetch(url,{signal:ctl.signal}); clearTimeout(to); if(!r.ok) throw 0; const arr=await r.json(); if(!Array.isArray(arr)||arr.length!==COMMUNES.length) throw 0;
+    const data={}; arr.forEach((o,k)=>{ const d=o.daily, n=v=>v.map(x=>x==null?0:x); data[COMMUNES[k].id]={tn:n(d.temperature_2m_min),tx:n(d.temperature_2m_max),r:n(d.precipitation_sum),h:n(d.relative_humidity_2m_mean),c:n(d.cloud_cover_mean),w:n(d.wind_speed_10m_max)}; });
+    const now=new Date();
+    WX.real={label:"Dự báo thật",note:"Open-Meteo, cập nhật "+String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0")+" "+fmtDY(now),start:arr[0].daily.time[0],today:7,data};
+    $("#src-wx").textContent="Thời tiết: Open-Meteo, dự báo cập nhật trực tiếp lúc mở trang ("+fmtDY(now)+"); tái phân tích ERA5 cho 6–19/1/2025, theo toạ độ ước lượng tâm từng xã.";
+    return true;
+  }catch(e){ clearTimeout(to); return false; }
+}
+async function standaloneInit(){
+  DB=makeLocalDB(SEED); UID="local";
+  try{ isExpert=localStorage.getItem("cptb2-expert")==="1"; }catch(e){}
+  $("#expert-wrap").style.display=""; $("#expert-tg").checked=isExpert;
+  $("#expert-tg").addEventListener("change",e=>{ isExpert=e.target.checked; try{ localStorage.setItem("cptb2-expert",isExpert?"1":"0"); }catch(_){} renderQuestions(); });
+  $("#q-note").textContent="Bản trình diễn: câu hỏi, giá, thông báo bạn thêm được lưu trên trình duyệt này.";
+  subscribeAll(DB);
+  TTS=makeBrowserTTS(); if(TTS&&ALERTS.list[0]) wireSpeak(ALERTS.list[0]);
+  wireDictation(makeBrowserDictation());
+  const ep=(window.CPTB_CONFIG&&window.CPTB_CONFIG.AI_ENDPOINT)||"";
+  if(ep){ SAMPLE=makeRemoteSample(ep); if(imgBlob) $("#diag-btn").disabled=false; }
+  else { $("#chat-note").textContent="Trợ lý AI cần cấu hình máy chủ AI (AI_ENDPOINT trong config.js). Bà con vẫn gửi câu hỏi cho cán bộ được."; }
+  if(await loadLiveWeather()){ updateScnLabel(); renderToday(); renderProvince(); }
+}
+
+(async()=>{
+  if(!window.claude||!window.claude.use){ standaloneInit(); return; }
+  claude.use("tts").then(t=>{ TTS=t; if(t&&ALERTS.list[0]) wireSpeak(ALERTS.list[0]); }).catch(()=>{});
+  claude.use("dictation").then(wireDictation).catch(()=>{});
+  claude.use("sample").then(async s=>{ if(!s){ $("#chat-note").textContent="Trợ lý AI không chạy ở chế độ xem này."; return; } SAMPLE=s; try{ const lim=await s.limits(); if(lim&&lim.images===false) $("#diag-status").textContent="Chế độ xem này chưa gửi được ảnh cho AI."; }catch(e){} if(imgBlob) $("#diag-btn").disabled=false; }).catch(()=>{});
+  try{
+    const [db,user]=await Promise.all([claude.use("db"),claude.use("user")]); DB=db;
+    if(user){ try{ UID=await user.id(); }catch(e){} try{ isExpert=!!(await user.canEdit()); }catch(e){} }
+    renderPrices(); renderQuestions(); renderProvince();
+    if(!db){ $("#q-note").textContent="Đăng nhập để gửi câu hỏi và xem câu trả lời."; return; }
+    if(isExpert) $("#q-note").textContent="Bạn có quyền biên tập: câu trả lời sẽ hiện là của cán bộ khuyến nông.";
+    subscribeAll(db);
+    if(UID){ farmRef=db.doc("data/users/"+UID+"/farm2"); try{ const s=await farmRef.get(); if(s.exists){ const d=s.data(); if(d.own) OWN={...OWN_DEFAULT,...d.own}; if(Array.isArray(d.diary)) OWN_DIARY=d.diary; saveLocal(); if(S.persona==="own") setPersona("own"); } }catch(e){} }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+name = "caphe-taybac-ai"
+main = "worker.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://truonganhhoang.github.io"
